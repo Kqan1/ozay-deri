@@ -1,48 +1,117 @@
-# Custom Fields ve Category Yönetimi Dökümantasyonu
+# Developer Guide: Category & Custom Field System
 
-Bu döküman, admin paneline eklenen "Kategori" ve "Dinamik Özellikli Ürün" sisteminin nasıl çalıştığını açıklamaktadır. Sistemi manuel olarak düzenlerken bu bilgiler işinize yarayacaktır.
+This document outlines the architecture, database schema, and server mutations for the recursive category tree and EAV-based dynamic product fields system.
 
-## 1. Veritabanı Yapısı (Prisma)
+---
 
-Şemamızda 3 temel model bulunmaktadır:
+## 1. Database Schema & Relations
 
-- `Category`: Ürünlerin gruplandığı kategorileri tutar.
-- `Product`: Ürünlerin ana bilgilerini (ad ve kategori ilişkisi) tutar.
-- `ProductField`: Her ürüne ait özel alanları tutar. (EAV - Entity Attribute Value modeli kullanılmıştır.)
+The system is built on Prisma (PostgreSQL) using a self-referencing hierarchy for categories and an Entity-Attribute-Value (EAV) model for dynamic product fields.
 
-**Neden `ProductField` Modeli Kullanıldı?**
-Bir kategorideki ürünlerin tamamen bağımsız özelliklere sahip olabilmesi için JSON kullanmak yerine ilişkisel bir model tercih ettik. Böylece sorgulama yapmak ve veri tiplerini korumak çok daha kolay.
+```prisma
+model Category {
+  id            String     @id @default(cuid())
+  name          String
+  isHidden      Boolean    @default(false)
+  parentId      String?
+  parent        Category?  @relation("SubCategories", fields: [parentId], references: [id], onDelete: SetNull)
+  subcategories Category[] @relation("SubCategories")
+  products      Product[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
 
-**Veri Tipleri (`FieldType` Enum):**
-- `STRING`: Basit metinler için. (`stringValue` sütununa kaydedilir)
-- `NUMBER_UNIT`: Ağırlık, uzunluk gibi birimli sayılar için. (`numberValue` ve `unit` sütunlarına kaydedilir)
-- `PHOTO`: Resim URL'leri için. UploadThing üzerinden yüklenen resmin URL'si `stringValue` sütununa kaydedilir.
+model Product {
+  id          String         @id @default(cuid())
+  name        String
+  isHidden    Boolean        @default(false)
+  categoryId  String?
+  category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  fields      ProductField[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
 
-## 2. Server Actions (`app/admin/actions.ts`)
+model ProductField {
+  id          String     @id @default(cuid())
+  productId   String
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String
+  type        FieldType  // STRING | NUMBER_UNIT | PHOTO
+  stringValue String?
+  numberValue Float?
+  unit        String?
+}
+```
 
-UI bileşenleri doğrudan veritabanına erişemeyeceği için Server Actions kullanılmıştır.
+### Key DB Behaviors:
+- **`Category.parent (onDelete: SetNull)`**: If a parent category is deleted, its subcategories are elevated to top-level categories rather than cascaded.
+- **`Product.category (onDelete: SetNull)`**: When a category is deleted, its products remain in the database with `categoryId = null` (uncategorized state).
+- **`ProductField.product (onDelete: Cascade)`**: Deleting a product automatically purges all related custom fields.
 
-- `createCategory({ name })`: Yeni bir kategori oluşturur.
-- `getCategories()`: Tüm kategorileri getirir.
-- `createProduct({ name, categoryId, fields })`: Bir ürünü ve ona ait tüm dinamik `ProductField` verilerini aynı anda oluşturur. Prisma'nın iç içe yazma (nested write) özelliği (`fields: { create: [...] }`) kullanılmıştır.
-- `getProducts()`: Tüm ürünleri, kategorileri ve özel alanlarıyla (fields) birlikte getirir.
+---
 
-## 3. UI Bileşenleri (`app/admin/page.tsx`)
+## 2. Server Mutations (`app/admin/actions.ts`)
 
-Arayüz oldukça basit tutulmuştur. Eğer tasarımı değiştirmek isterseniz `app/admin/page.tsx` dosyasındaki Tailwind sınıflarını (class) düzenleyebilirsiniz.
+All mutation actions trigger Next.js cache revalidation via `revalidatePath("/")` to ensure instant updates.
 
-### Ürün Ekleme Mantığı:
-1. State içinde `fields` isimli bir dizi tutulur.
-2. Kullanıcı "Metin Ekle", "Fotoğraf Ekle" gibi butonlara bastığında `fields` dizisine varsayılan değerlerle yeni bir obje eklenir (`addField` fonksiyonu).
-3. İnputlara girilen değerler `updateField` fonksiyonu ile `fields` dizisinde güncellenir.
-4. "Ürünü Kaydet" butonuna basıldığında tüm bilgiler `createProduct` action'ına gönderilir.
+### Category Actions
+- `createCategory(data: { name: string, parentId?: string | null, isHidden?: boolean })`
+- `updateCategory(id: string, data: { name: string, parentId?: string | null, isHidden?: boolean })`
+- `deleteCategory(id: string, deleteProducts: boolean)`
+  - If `deleteProducts === true`: Executes `prisma.product.deleteMany({ where: { categoryId: id } })` before deleting the category.
+  - If `deleteProducts === false`: Category deletion triggers `onDelete: SetNull` on the products in the database.
 
-## 4. UploadThing (Fotoğraf Yükleme)
+### Product Actions
+- `createProduct(data: CreateProductInput)`
+- `updateProduct(id: string, data: CreateProductInput)`
+  - **Optimization:** Dynamic fields are updated using a destructive-recreate pattern (`deleteMany` followed by nested `create`) to avoid complex diff-matching algorithms on the client or server.
+- `deleteProduct(id: string)`
 
-Resim yükleme işlemleri için UploadThing entegre edilmiştir.
-- **Sunucu Ayarları:** `app/api/uploadthing/core.ts` dosyasında `productImage` isimli bir endpoint tanımlanmıştır. (Max 4MB, 1 Dosya kısıtlaması mevcuttur).
-- **Client Bileşeni:** `utils/uploadthing.ts` içindeki `UploadButton` kullanılmıştır.
-- **Kullanımı:** `app/admin/page.tsx` içinde türü `PHOTO` olan alanlar için bu buton gösterilir. Yükleme tamamlandığında dönen URL `updateField` ile kaydedilir.
+---
 
-> [!TIP]
-> Eğer UploadThing'in çalışması için gerekli olan `UPLOADTHING_SECRET` ve `UPLOADTHING_APP_ID` çevre değişkenlerini (environment variables) `.env` dosyanıza eklemediyseniz, fotoğraf yükleme işlemi hata verecektir. (UploadThing dashboard'undan alınabilir.)
+## 3. Core Workflows & Logic
+
+### Category Deletion Flow
+```mermaid
+graph TD
+    A[Trigger deleteCategory] --> B{deleteProducts flag?}
+    B -- True --> C[Delete all products in category]
+    B -- False --> D[Set categoryId of products to null]
+    C --> E[Delete Category]
+    D --> E
+    E --> F[Next.js revalidatePath]
+```
+
+### Visibility & Hide System (`isHidden`)
+- Both `Category` and `Product` models implement the `isHidden` boolean flag.
+- **Admin Panel UI (`app/admin/page.tsx`):**
+  - Displays all items regardless of `isHidden` value.
+  - Hidden items are styled with `opacity-60` and prepended with a `👁️‍🗨️` emoji in the UI list.
+- **Showcase UI (`app/(user)/page.tsx`):**
+  - Excludes hidden items directly at the database query level:
+    ```typescript
+    const categories = await db.category.findMany({
+        where: { isHidden: false },
+        include: {
+            products: {
+                where: { isHidden: false },
+                include: { fields: true }
+            }
+        }
+    });
+    ```
+  - Uncategorized products (`categoryId === null`) are not fetched or shown in the showcase because the tree traversal starts from root categories.
+
+---
+
+## 4. Frontend State & Interactions
+
+- **Form States:**
+  - `editCategoryId` and `editProductId` (type `string | null`) control whether the forms operate in `CREATE` or `UPDATE` mode.
+  - Selecting **Cancel** resets state and defaults the form back to `CREATE`.
+- **Category Options Nesting:**
+  - When editing a category, the current category is filtered out from the parent selection list: `categories.filter(c => c.id !== editCategoryId)`. This prevents self-referencing loops.
+- **Uncategorized Products Section:**
+  - Evaluated on the client via `products.filter(p => p.categoryId === null)`.
+  - Rendered in a restricted section at the bottom of the admin panel. Admins can delete or assign a category to these items to clean up database state.
