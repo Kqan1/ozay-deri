@@ -16,15 +16,17 @@ export const metadata: Metadata = siteConfig.metadata;
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <html lang="en" className={cn("h-full", "font-sans", inter.variable)} suppressHydrationWarning>
-            <body suppressHydrationWarning className={cn("bg-background h-full overflow-hidden font-sans antialiased text-foreground",fontSans.variable)}>
+            <body suppressHydrationWarning className={cn("bg-background min-h-screen font-sans antialiased text-foreground",fontSans.variable)}>
                 <Providers>
-                    <main className="flex h-full w-full justify-center">
+                    <div className="flex min-h-screen flex-col">
                         <Header />
-                        <div className="flex-1 overflow-y-auto p-4">
-                            {children}
-                        </div>
+                        <main className="flex-1 pt-20 px-4 sm:px-6 lg:px-8">
+                            <div className="mx-auto max-w-7xl w-full">
+                                {children}
+                            </div>
+                        </main>
                         <Footer />
-                    </main>
+                    </div>
                 </Providers>
             </body>
         </html>

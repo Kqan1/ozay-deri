@@ -11,3 +11,55 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  role      ROLE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ROLE {
+  ADMIN
+  USER
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  name        String
+  categoryId  String
+  category    Category       @relation(fields: [categoryId], references: [id])
+  fields      ProductField[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model ProductField {
+  id          String     @id @default(cuid())
+  productId   String
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  name        String     // e.g. "Kumaş", "Ağırlık", "Ön Yüz Fotoğrafı"
+  type        FieldType  // enum: STRING, NUMBER_UNIT, PHOTO
+  
+  stringValue String?
+  numberValue Float?
+  unit        String?
+}
+
+enum FieldType {
+  STRING
+  NUMBER_UNIT
+  PHOTO
+}
