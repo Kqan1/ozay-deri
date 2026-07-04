@@ -4,11 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { logEmptySearch } from "@/app/actions/search-actions";
 import { ChevronRight, FilterX } from "lucide-react";
+import SidebarFilter from "@/components/sidebar-filter";
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const resolvedParams = await searchParams;
   const q = resolvedParams.q as string;
   const page = Number(resolvedParams.page) || 1;
+  const categoryParam = resolvedParams.category as string | undefined;
+  const categoryIds = categoryParam ? categoryParam.split(",") : [];
   
   if (!q) {
     return (
@@ -19,16 +22,25 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     );
   }
 
-  // 1. Find all filterable fields globally
+  // 1. Find all filterable fields globally or for the selected category
   const filterableFields = await db.fieldDefinition.findMany({
-    where: { isFilterable: true }
+    where: { 
+      isFilterable: true,
+      ...(categoryIds.length > 0 ? { OR: [{ isGlobal: true }, { categoryId: { in: categoryIds } }] } : {})
+    }
+  });
+
+  const categories = await db.category.findMany({
+    where: { isHidden: false },
+    select: { id: true, name: true, parentId: true }
   });
 
   // 2. Extract selected filters from searchParams
-  const activeFilters: Record<string, string> = {};
+  const activeFilters: Record<string, string[]> = {};
   for (const field of filterableFields) {
-    if (resolvedParams[field.name]) {
-      activeFilters[field.name] = resolvedParams[field.name] as string;
+    const rawVal = resolvedParams[field.name];
+    if (rawVal) {
+      activeFilters[field.name] = typeof rawVal === 'string' ? rawVal.split(",") : rawVal;
     }
   }
 
@@ -37,14 +49,24 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const filterKeys = Object.keys(activeFilters);
   if (filterKeys.length > 0) {
     const conditions = filterKeys.map(key => {
+      const values = activeFilters[key];
       return Prisma.sql`EXISTS (
         SELECT 1 FROM "ProductField" pf 
         WHERE pf."productId" = p.id 
           AND pf.name = ${key} 
-          AND pf."stringValue" = ${activeFilters[key]}
+          AND pf."stringValue" = ANY(ARRAY[${Prisma.join(values)}]::text[])
       )`;
     });
     filterConditions = Prisma.sql`AND ${Prisma.join(conditions, ' AND ')}`;
+  }
+
+  if (categoryIds.length > 0) {
+    const catCond = Prisma.sql`(p."categoryId" = ANY(ARRAY[${Prisma.join(categoryIds)}]::text[]) OR c."parentId" = ANY(ARRAY[${Prisma.join(categoryIds)}]::text[]))`;
+    if (filterKeys.length > 0) {
+      filterConditions = Prisma.sql`${filterConditions} AND ${catCond}`;
+    } else {
+      filterConditions = Prisma.sql`AND ${catCond}`;
+    }
   }
 
   const query = Prisma.sql`
@@ -131,43 +153,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
       <div className="flex flex-col lg:flex-row gap-10">
         {/* Left Sidebar (Filters) */}
-        <aside className="w-full lg:w-64 shrink-0 space-y-8">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <h3 className="text-lg font-semibold">Filtreler</h3>
-            {filterKeys.length > 0 && (
-              <Link href={`/search?q=${q}`} className="text-xs text-rose-400 flex items-center hover:text-rose-300">
-                <FilterX size={14} className="mr-1" /> Temizle
-              </Link>
-            )}
-          </div>
-
-          {filterOptions.map((field) => {
-            if (field.options.length === 0) return null;
-            const isActive = activeFilters[field.name];
-
-            return (
-              <div key={field.id} className="space-y-4">
-                <h4 className="font-medium text-sm text-neutral-200">{field.name}</h4>
-                <div className="space-y-2">
-                  <Link
-                    href={buildFilterUrl(field.name)}
-                    className={`block text-sm transition-colors ${!isActive ? "text-indigo-400 font-medium" : "text-neutral-400 hover:text-white"}`}
-                  >
-                    Tümü
-                  </Link>
-                  {field.options.map((opt) => (
-                    <Link
-                      key={opt}
-                      href={buildFilterUrl(field.name, opt)}
-                      className={`block text-sm transition-colors ${isActive === opt ? "text-indigo-400 font-medium" : "text-neutral-400 hover:text-white"}`}
-                    >
-                      {opt}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <aside className="w-full lg:w-64 shrink-0">
+          <SidebarFilter filterableFields={filterOptions} categories={categories} />
         </aside>
 
         {/* Main Content (Results) */}
