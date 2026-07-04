@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { LogOut, Shield, User, LogIn, UserPlus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import LiveSearch from "./live-search";
 
 export default function HeaderUser() {
     const { data: session, status } = useSession();
@@ -22,6 +23,11 @@ export default function HeaderUser() {
                     >
                         ÖZAY Deri
                     </Link>
+                </div>
+
+                {/* Search */}
+                <div className="flex-1 flex justify-center max-w-2xl px-4">
+                    <LiveSearch />
                 </div>
 
                 {/* Right Side Actions */}
