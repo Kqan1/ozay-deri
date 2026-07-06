@@ -6,9 +6,11 @@ import {
     createCategory, getCategories, 
     createProduct, getProducts, CreateProductInput, 
     updateCategory, deleteCategory,
-    updateProduct, deleteProduct
+    updateProduct, deleteProduct,
+    getFieldDefinitions
 } from "./actions";
 import { UploadButton } from "@/utils/uploadthing";
+import Link from "next/link";
 
 export default function AdminPage() {
     const { data: session, status } = useSession();
@@ -28,6 +30,7 @@ export default function AdminPage() {
     const [productCategoryId, setProductCategoryId] = useState("");
     const [productIsHidden, setProductIsHidden] = useState(false);
     const [fields, setFields] = useState<CreateProductInput["fields"]>([]);
+    const [fieldDefinitions, setFieldDefinitions] = useState<any[]>([]);
 
     useEffect(() => {
         loadData();
@@ -37,8 +40,10 @@ export default function AdminPage() {
         setIsLoading(true);
         const cats = await getCategories();
         const prods = await getProducts();
+        const fdefs = await getFieldDefinitions();
         setCategories(cats);
         setProducts(prods);
+        setFieldDefinitions(fdefs);
         if (cats.length > 0 && !editProductId) setProductCategoryId(cats[0].id);
         setIsLoading(false);
     }
@@ -112,19 +117,47 @@ export default function AdminPage() {
     // --- PRODUCT HANDLERS ---
     async function handleSaveProduct() {
         if (!productName) return;
+
+        const applicableFieldDefs = fieldDefinitions.filter(
+            (fd) => fd.isGlobal || fd.categoryId === productCategoryId
+        );
+        const applicableNames = applicableFieldDefs.map(fd => fd.name);
+
+        const legacyFields = fields.filter(f => !applicableNames.includes(f.name));
+        
+        if (legacyFields.length > 0 && editProductId) {
+            const proceed = window.confirm(`Bu ürün için bazı özel alanlar (Custom Fields) artık bu kategoride tanımlı değil: ${legacyFields.map(f => f.name).join(", ")}. Devam ederseniz bu eski alanlar silinecek. Onaylıyor musunuz?`);
+            if (!proceed) return;
+        }
+
+        const fieldsToSave = applicableFieldDefs.map(fd => {
+            const existing = fields.find(f => f.name === fd.name);
+            return {
+                name: fd.name,
+                type: fd.type,
+                stringValue: existing?.stringValue || "",
+                numberValue: existing?.numberValue || null,
+                unit: existing?.unit || ""
+            };
+        }).filter(f => {
+            if (f.type === 'STRING' || f.type === 'PHOTO') return !!f.stringValue;
+            if (f.type === 'NUMBER_UNIT') return f.numberValue !== null && !isNaN(f.numberValue);
+            return false;
+        });
+
         if (editProductId) {
             await updateProduct(editProductId, {
                 name: productName,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
-                fields,
+                fields: fieldsToSave,
             });
         } else {
             await createProduct({
                 name: productName,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
-                fields,
+                fields: fieldsToSave,
             });
         }
         resetProductForm();
@@ -177,13 +210,16 @@ export default function AdminPage() {
         if (categories.length > 0) setProductCategoryId(categories[0].id);
     }
 
-    function addField(type: "STRING" | "NUMBER_UNIT" | "PHOTO") {
-        setFields([...fields, { name: "", type }]);
-    }
-
-    function updateField(index: number, key: string, value: any) {
+    function updateFieldByName(name: string, type: string, key: string, value: any) {
         const newFields = [...fields];
-        (newFields[index] as any)[key] = value;
+        const existingIndex = newFields.findIndex(f => f.name === name);
+        if (existingIndex >= 0) {
+            (newFields[existingIndex] as any)[key] = value;
+        } else {
+            const newField: any = { name, type };
+            newField[key] = value;
+            newFields.push(newField);
+        }
         setFields(newFields);
     }
 
@@ -317,53 +353,40 @@ export default function AdminPage() {
                 <div className="space-y-4 pt-4 border-t border-zinc-200 dark:border-zinc-700 mt-4">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                         <h3 className="font-semibold text-lg">Özel Alanlar (Custom Fields)</h3>
-                        <div className="flex flex-wrap gap-2">
-                            <button onClick={() => addField("STRING")} className="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 px-3 py-1.5 rounded text-sm font-medium">Metin Ekle</button>
-                            <button onClick={() => addField("NUMBER_UNIT")} className="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 px-3 py-1.5 rounded text-sm font-medium">Sayı+Birim Ekle</button>
-                            <button onClick={() => addField("PHOTO")} className="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 px-3 py-1.5 rounded text-sm font-medium">Fotoğraf Ekle</button>
-                        </div>
+                        <Link href="/admin/fields" className="text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1.5 rounded font-medium">
+                            Alanları Yönet (Yeni Ekle / Düzenle)
+                        </Link>
                     </div>
 
-                    {fields.map((f, i) => (
+                    {fieldDefinitions.filter((fd) => fd.isGlobal || fd.categoryId === productCategoryId).map((fd, i) => {
+                        const currentVal = fields.find(f => f.name === fd.name) || { name: fd.name, type: fd.type, stringValue: "", numberValue: null, unit: "" };
+                        return (
                         <div key={i} className="border border-zinc-200 dark:border-zinc-700 p-4 flex flex-col gap-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 relative group">
-                            <button 
-                                onClick={() => setFields(fields.filter((_, idx) => idx !== i))}
-                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                                title="Bu alanı kaldır"
-                            >
-                                ✕
-                            </button>
-                            <input 
-                                type="text" 
-                                placeholder="Alan Adı (Örn: Ağırlık, Renk)" 
-                                className="border border-zinc-300 dark:border-zinc-600 p-2 rounded bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50 w-full sm:w-1/2"
-                                value={f.name}
-                                onChange={(e) => updateField(i, "name", e.target.value)}
-                            />
+                            <h4 className="font-medium">{fd.name} <span className="text-xs text-zinc-500 font-normal ml-2">({fd.type === 'STRING' ? 'Metin' : fd.type === 'NUMBER_UNIT' ? 'Sayı+Birim' : 'Fotoğraf'})</span></h4>
 
-                            {f.type === "STRING" && (
+                            {fd.type === "STRING" && (
                                 <input 
                                     type="text" 
                                     placeholder="Metin Değeri" 
                                     className="border border-zinc-300 dark:border-zinc-600 p-2 rounded bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50 w-full"
-                                    value={f.stringValue || ""}
-                                    onChange={(e) => updateField(i, "stringValue", e.target.value)}
+                                    value={currentVal.stringValue || ""}
+                                    onChange={(e) => updateFieldByName(fd.name, fd.type, "stringValue", e.target.value)}
                                 />
                             )}
 
-                            {f.type === "NUMBER_UNIT" && (
+                            {fd.type === "NUMBER_UNIT" && (
                                 <div className="flex gap-2 w-full sm:w-1/2">
                                     <input 
                                         type="number" 
                                         placeholder="Değer" 
                                         className="border border-zinc-300 dark:border-zinc-600 p-2 rounded flex-1 min-w-0 bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50"
-                                        value={f.numberValue || ""}
-                                        onChange={(e) => updateField(i, "numberValue", parseFloat(e.target.value))}
+                                        value={currentVal.numberValue === null || currentVal.numberValue === undefined ? "" : currentVal.numberValue}
+                                        onChange={(e) => updateFieldByName(fd.name, fd.type, "numberValue", parseFloat(e.target.value))}
                                     />
                                     <select 
                                         className="border border-zinc-300 dark:border-zinc-600 p-2 rounded bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50 w-24 shrink-0"
-                                        value={f.unit || ""}
-                                        onChange={(e) => updateField(i, "unit", e.target.value)}
+                                        value={currentVal.unit || ""}
+                                        onChange={(e) => updateFieldByName(fd.name, fd.type, "unit", e.target.value)}
                                     >
                                         <option value="">Birim Seç</option>
                                         <option value="kg">kg</option>
@@ -374,12 +397,12 @@ export default function AdminPage() {
                                 </div>
                             )}
 
-                            {f.type === "PHOTO" && (
+                            {fd.type === "PHOTO" && (
                                 <div className="mt-2">
-                                    {f.stringValue ? (
+                                    {currentVal.stringValue ? (
                                         <div className="flex items-center gap-4">
                                             <p className="text-green-600 dark:text-green-400 text-sm font-medium">✅ Fotoğraf yüklendi</p>
-                                            <button onClick={() => updateField(i, "stringValue", "")} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
+                                            <button onClick={() => updateFieldByName(fd.name, fd.type, "stringValue", "")} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
                                                 Fotoğrafı Değiştir
                                             </button>
                                         </div>
@@ -388,7 +411,7 @@ export default function AdminPage() {
                                             endpoint="productImage"
                                             onClientUploadComplete={(res) => {
                                                 if(res && res[0]) {
-                                                    updateField(i, "stringValue", res[0].url);
+                                                    updateFieldByName(fd.name, fd.type, "stringValue", res[0].url);
                                                 }
                                             }}
                                             onUploadError={(error: Error) => {
@@ -399,7 +422,7 @@ export default function AdminPage() {
                                 </div>
                             )}
                         </div>
-                    ))}
+                    )})}
                 </div>
 
                 <div className="flex gap-2 mt-6">

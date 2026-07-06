@@ -140,3 +140,9 @@ export async function getProducts() {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function getFieldDefinitions() {
+  return prisma.fieldDefinition.findMany({
+    orderBy: { createdAt: "asc" },
+  });
+}
