@@ -85,9 +85,9 @@ graph TD
 
 ### Visibility & Hide System (`isHidden`)
 - Both `Category` and `Product` models implement the `isHidden` boolean flag.
-- **Admin Panel UI (`app/admin/page.tsx`):**
+- **Admin Panel UI (`app/admin/categories/page.tsx` & `app/admin/products/page.tsx`):**
   - Displays all items regardless of `isHidden` value.
-  - Hidden items are styled with `opacity-60` and prepended with a `👁️‍🗨️` emoji in the UI list.
+  - Hidden items are styled with `opacity-70` (or `60`) and prepended with a `Gizli` badge.
 - **Showcase UI (`app/(user)/page.tsx`):**
   - Excludes hidden items directly at the database query level:
     ```typescript
@@ -113,5 +113,5 @@ graph TD
 - **Category Options Nesting:**
   - When editing a category, the current category is filtered out from the parent selection list: `categories.filter(c => c.id !== editCategoryId)`. This prevents self-referencing loops.
 - **Uncategorized Products Section:**
-  - Evaluated on the client via `products.filter(p => p.categoryId === null)`.
-  - Rendered in a restricted section at the bottom of the admin panel. Admins can delete or assign a category to these items to clean up database state.
+  - Evaluated on the client via `products.filter(p => p.categoryId === null)` in `app/admin/products/page.tsx`.
+  - Rendered in a restricted section at the bottom of the products page. Admins can delete or assign a category to these items to clean up database state.

@@ -8,9 +8,21 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import LiveSearch from "./live-search";
 
+import { useRouter } from "next/navigation";
+
 export default function HeaderUser() {
     const { data: session, status } = useSession();
     const isLoading = status === "loading";
+    const router = useRouter();
+
+    React.useEffect(() => {
+        if ((session as any)?.error === "UserDeleted") {
+            router.push("/account-deleted");
+        }
+    }, [session, router]);
+
+    const username = session?.user ? (session.user as any).username || "Kullanıcı" : "";
+    const initial = username ? username.charAt(0).toUpperCase() : "U";
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-white/[0.06] bg-black/60 backdrop-blur-md">
@@ -34,7 +46,7 @@ export default function HeaderUser() {
                 <nav className="flex items-center gap-4">
                     {isLoading ? (
                         <div className="h-8 w-24 animate-pulse rounded-md bg-white/10" />
-                    ) : session ? (
+                    ) : session?.user ? (
                         <div className="flex items-center gap-3 sm:gap-4">
                             {/* Admin Link if Admin */}
                             {session.user.role === "ADMIN" && (
@@ -50,10 +62,10 @@ export default function HeaderUser() {
                             {/* User Profile Info */}
                             <div className="flex items-center gap-1.5 text-sm text-neutral-300">
                                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600/20 border border-indigo-500/20 text-indigo-400">
-                                    <User size={14} />
+                                    {initial}
                                 </div>
                                 <span className="max-w-[100px] truncate font-medium text-xs sm:text-sm">
-                                    {session.user.name || session.user.email}
+                                    {username}
                                 </span>
                             </div>
 

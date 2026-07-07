@@ -4,13 +4,13 @@ import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +20,7 @@ export default function LoginPage() {
     React.useEffect(() => {
         if (errorParam) {
             if (errorParam === "CredentialsSignin") {
-                toast.error("Geçersiz e-posta veya şifre.");
+                toast.error("Geçersiz kullanıcı adı veya şifre.");
             } else {
                 toast.error("Giriş yaparken bir hata oluştu.");
             }
@@ -30,7 +30,7 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!email.trim() || !password.trim()) {
+        if (!username.trim() || !password.trim()) {
             toast.error("Lütfen tüm alanları doldurun.");
             return;
         }
@@ -40,7 +40,7 @@ export default function LoginPage() {
 
         try {
             const result = await signIn("credentials", {
-                email: email.trim(),
+                username: username.trim(),
                 password: password,
                 redirect: false,
             });
@@ -83,23 +83,23 @@ export default function LoginPage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Email Input */}
+                    {/* Username Input */}
                     <div className="space-y-1">
-                        <label htmlFor="email" className="text-xs font-semibold text-neutral-300 ml-1">
-                            E-posta
+                        <label htmlFor="username" className="text-xs font-semibold text-neutral-300 ml-1">
+                            Kullanıcı Adı
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-indigo-400 transition-colors">
-                                <Mail size={18} />
+                                <UserIcon size={18} />
                             </div>
                             <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="name@domain.com"
+                                id="username"
+                                name="username"
+                                type="text"
+                                placeholder="kullanici_adi"
                                 required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 disabled={isLoading}
                                 className="w-full pl-10 pr-4 py-3 bg-white/[0.03] border border-white/[0.1] rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all duration-200"
                             />

@@ -5,8 +5,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 const registerSchema = z.object({
-    name: z.string().min(2, "İsim en az 2 karakter olmalıdır.").optional().or(z.literal("")),
-    email: z.string().email("Geçersiz e-posta adresi."),
+    username: z.string().min(3, "Kullanıcı adı en az 3 karakter olmalıdır."),
     password: z.string().min(6, "Şifre en az 6 karakter olmalıdır.")
 });
 
@@ -18,13 +17,11 @@ export type ActionState = {
 
 export async function registerUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
     try {
-        const rawName = formData.get("name") as string;
-        const rawEmail = formData.get("email") as string;
+        const rawUsername = formData.get("username") as string;
         const rawPassword = formData.get("password") as string;
 
         const validated = registerSchema.safeParse({
-            name: rawName,
-            email: rawEmail,
+            username: rawUsername,
             password: rawPassword
         });
 
@@ -35,17 +32,17 @@ export async function registerUser(prevState: ActionState, formData: FormData): 
             };
         }
 
-        const { name, email, password } = validated.data;
+        const { username, password } = validated.data;
 
-        // Check if email already exists
+        // Check if username already exists
         const existingUser = await db.user.findUnique({
-            where: { email }
+            where: { username }
         });
 
         if (existingUser) {
             return {
                 success: false,
-                error: "Bu e-posta adresi zaten kullanımda."
+                error: "Bu kullanıcı adı zaten kullanımda."
             };
         }
 
@@ -55,8 +52,7 @@ export async function registerUser(prevState: ActionState, formData: FormData): 
         // Create user in the database
         await db.user.create({
             data: {
-                name: name || null,
-                email,
+                username,
                 password: hashedPassword,
                 role: "USER" // Default role is USER
             }

@@ -4,6 +4,7 @@ import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function createFieldDefinition(formData: FormData) {
+  const id = formData.get("id") as string | null;
   const name = formData.get("name") as string;
   const type = formData.get("type") as "STRING" | "NUMBER_UNIT" | "PHOTO";
   const isGlobal = formData.get("isGlobal") === "true";
@@ -15,17 +16,25 @@ export async function createFieldDefinition(formData: FormData) {
   if (!name || !type) return { error: "Name and type are required" };
 
   try {
-    await db.fieldDefinition.create({
-      data: {
-        name,
-        type,
-        isGlobal,
-        categoryId: isGlobal ? null : (categoryId || null),
-        isFilterable,
-        isSortable,
-        isSearchable
-      }
-    });
+    const data = {
+      name,
+      type,
+      isGlobal,
+      categoryId: isGlobal ? null : (categoryId || null),
+      isFilterable,
+      isSortable,
+      isSearchable
+    };
+
+    if (id) {
+      await db.fieldDefinition.update({
+        where: { id },
+        data
+      });
+    } else {
+      await db.fieldDefinition.create({ data });
+    }
+    
     revalidatePath("/admin/fields");
     return { success: true };
   } catch (e: any) {

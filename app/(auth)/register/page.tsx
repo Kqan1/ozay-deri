@@ -9,8 +9,7 @@ import { registerUser } from "@/app/actions/auth";
 
 export default function RegisterPage() {
     const router = useRouter();
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +19,7 @@ export default function RegisterPage() {
         e.preventDefault();
         
         // Front-end validations
-        if (!email.trim() || !password || !confirmPassword) {
+        if (!username.trim() || !password || !confirmPassword) {
             toast.error("Lütfen tüm zorunlu alanları doldurun.");
             return;
         }
@@ -40,8 +39,7 @@ export default function RegisterPage() {
 
         try {
             const formData = new FormData();
-            formData.append("name", name.trim());
-            formData.append("email", email.trim());
+            formData.append("username", username.trim());
             formData.append("password", password);
 
             const result = await registerUser(null, formData);
@@ -81,45 +79,23 @@ export default function RegisterPage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Name Input (Optional) */}
+                    {/* Username Input */}
                     <div className="space-y-1">
-                        <label htmlFor="name" className="text-xs font-semibold text-neutral-300 ml-1">
-                            Ad Soyad <span className="text-neutral-500 text-[10px]">(İsteğe bağlı)</span>
+                        <label htmlFor="username" className="text-xs font-semibold text-neutral-300 ml-1">
+                            Kullanıcı Adı
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-indigo-400 transition-colors">
                                 <User size={18} />
                             </div>
                             <input
-                                id="name"
-                                name="name"
+                                id="username"
+                                name="username"
                                 type="text"
-                                placeholder="Ahmet Yılmaz"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                disabled={isLoading}
-                                className="w-full pl-10 pr-4 py-3 bg-white/[0.03] border border-white/[0.1] rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all duration-200"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Email Input */}
-                    <div className="space-y-1">
-                        <label htmlFor="email" className="text-xs font-semibold text-neutral-300 ml-1">
-                            E-posta
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-indigo-400 transition-colors">
-                                <Mail size={18} />
-                            </div>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="name@domain.com"
+                                placeholder="kullanici_adi"
                                 required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 disabled={isLoading}
                                 className="w-full pl-10 pr-4 py-3 bg-white/[0.03] border border-white/[0.1] rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all duration-200"
                             />

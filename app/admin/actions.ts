@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { FieldType } from "@/app/generated/prisma/client";
+import { requireAdmin } from "@/lib/auth-utils";
 
 import prisma from "@/lib/db";
 
 export async function createCategory(data: { name: string; parentId?: string | null; isHidden?: boolean }) {
+  await requireAdmin();
   const category = await prisma.category.create({
     data: {
       name: data.name,
@@ -18,6 +20,7 @@ export async function createCategory(data: { name: string; parentId?: string | n
 }
 
 export async function updateCategory(id: string, data: { name: string; parentId?: string | null; isHidden?: boolean }) {
+  await requireAdmin();
   const category = await prisma.category.update({
     where: { id },
     data: {
@@ -31,6 +34,7 @@ export async function updateCategory(id: string, data: { name: string; parentId?
 }
 
 export async function deleteCategory(id: string, deleteProducts: boolean) {
+  await requireAdmin();
   if (deleteProducts) {
     // Kategoriye ait ürünleri sil
     await prisma.product.deleteMany({
@@ -46,6 +50,7 @@ export async function deleteCategory(id: string, deleteProducts: boolean) {
 }
 
 export async function getCategories() {
+  await requireAdmin();
   return prisma.category.findMany({
     include: {
       parent: true,
@@ -68,6 +73,7 @@ export type CreateProductInput = {
 };
 
 export async function createProduct(data: CreateProductInput) {
+  await requireAdmin();
   const product = await prisma.product.create({
     data: {
       name: data.name,
@@ -93,6 +99,7 @@ export async function createProduct(data: CreateProductInput) {
 }
 
 export async function updateProduct(id: string, data: CreateProductInput) {
+  await requireAdmin();
   // Önce eski özellikleri sil, sonra yenilerini ekle (Prisma'da ilişkisel array'i tamamen güncellemenin en kolay yolu)
   await prisma.productField.deleteMany({
     where: { productId: id },
@@ -124,6 +131,7 @@ export async function updateProduct(id: string, data: CreateProductInput) {
 }
 
 export async function deleteProduct(id: string) {
+  await requireAdmin();
   const product = await prisma.product.delete({
     where: { id },
   });
@@ -132,6 +140,7 @@ export async function deleteProduct(id: string) {
 }
 
 export async function getProducts() {
+  await requireAdmin();
   return prisma.product.findMany({
     include: {
       category: true,
@@ -142,7 +151,22 @@ export async function getProducts() {
 }
 
 export async function getFieldDefinitions() {
+  await requireAdmin();
   return prisma.fieldDefinition.findMany({
+    include: { category: true },
     orderBy: { createdAt: "asc" },
   });
+}
+
+export async function getAdminStats() {
+  await requireAdmin();
+  const productsCount = await prisma.product.count();
+  const categoriesCount = await prisma.category.count();
+  const fieldsCount = await prisma.fieldDefinition.count();
+  
+  return {
+    productsCount,
+    categoriesCount,
+    fieldsCount
+  };
 }

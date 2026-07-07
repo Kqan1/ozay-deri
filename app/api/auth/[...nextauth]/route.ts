@@ -8,17 +8,17 @@ export const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                email: { label: "Email", type: "email" },
+                username: { label: "Kullanıcı Adı", type: "text" },
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
-                    throw new Error("E-posta ve şifre gereklidir.");
+                if (!credentials?.username || !credentials?.password) {
+                    throw new Error("Kullanıcı adı ve şifre gereklidir.");
                 }
 
                 // Fetch the user from the database via the Prisma client in lib/db.ts
                 const user = await db.user.findUnique({
-                    where: { email: credentials.email }
+                    where: { username: credentials.username }
                 });
 
                 if (!user || !user.password) {
@@ -35,25 +35,56 @@ export const authOptions: NextAuthOptions = {
                 // Return user object, containing our custom role and id fields
                 return {
                     id: user.id,
-                    email: user.email,
-                    name: user.name,
+                    username: user.username,
                     role: user.role
                 };
             }
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.id;
                 token.role = (user as any).role;
+                token.username = (user as any).username;
+            } else if (token.id) {
+                // Fetch latest data from database to ensure user still exists and cache is updated
+                try {
+                    const dbUser = await db.user.findUnique({
+                        where: { id: token.id as string }
+                    });
+                    
+                    if (!dbUser) {
+                        // User was deleted from database, invalidate token
+                        return { ...token, error: "UserDeleted" };
+                    }
+                    
+                    // Always keep token synced with database
+                    token.role = dbUser.role;
+                    token.username = dbUser.username;
+                } catch (error) {
+                    console.error("Error fetching user in jwt callback:", error);
+                }
             }
+
+            if (trigger === "update" && session) {
+                if (session.username) token.username = session.username;
+            }
+
             return token;
         },
         async session({ session, token }) {
+            if (token.error === "UserDeleted") {
+                // Clear session if user was deleted and pass error
+                session.user = undefined as any;
+                (session as any).error = "UserDeleted";
+                return session;
+            }
+
             if (session.user) {
                 (session.user as any).id = token.id;
                 (session.user as any).role = token.role;
+                (session.user as any).username = token.username;
             }
             return session;
         }
