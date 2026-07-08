@@ -11,7 +11,8 @@ import { CustomUploadDropzone } from "@/components/custom-upload";
 import { SortableImageGallery } from "@/components/sortable-image-gallery";
 import Link from "next/link";
 import Loading from "./loading";
-import { Package, X, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
+import { Package, X, ChevronLeft, ChevronRight, Image as ImageIcon, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { ImageWithSpinner } from "@/components/image-with-spinner";
 import { toast } from "sonner";
 
 export default function ProductsAdminPage() {
@@ -23,11 +24,13 @@ export default function ProductsAdminPage() {
     // Product Form State
     const [editProductId, setEditProductId] = useState<string | null>(null);
     const [productName, setProductName] = useState("");
+    const [productPrice, setProductPrice] = useState<number | "">("");
     const [productCategoryId, setProductCategoryId] = useState("");
     const [productIsHidden, setProductIsHidden] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [images, setImages] = useState<string[]>([]);
     const [fields, setFields] = useState<CreateProductInput["fields"]>([]);
+    const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -38,23 +41,38 @@ export default function ProductsAdminPage() {
         const cats = await getCategories();
         const prods = await getProducts();
         const fdefs = await getFieldDefinitions();
-        setCategories(cats);
+        
+        // Ağaç yapısına göre sıralama
+        const sortedCats: any[] = [];
+        const roots = cats.filter(c => !c.parentId).sort((a, b) => a.name.localeCompare(b.name));
+        function traverse(parentId: string, depth: number) {
+            const children = cats.filter(c => c.parentId === parentId).sort((a, b) => a.name.localeCompare(b.name));
+            for (const child of children) {
+                child._depth = depth;
+                sortedCats.push(child);
+                traverse(child.id, depth + 1);
+            }
+        }
+        for (const root of roots) {
+            root._depth = 0;
+            sortedCats.push(root);
+            traverse(root.id, 1);
+        }
+        
+        setCategories(sortedCats);
         setProducts(prods);
         setFieldDefinitions(fdefs);
-        if (cats.length > 0 && !editProductId) setProductCategoryId(cats[0].id);
+        if (sortedCats.length > 0 && !editProductId) setProductCategoryId(sortedCats[0].id);
         setIsLoading(false);
     }
 
     if (isLoading) return <Loading />;
 
-    function buildCategoryPath(category: any, allCategories: any[]): string {
+    function buildCategoryPath(category: any): string {
         if (!category) return "";
-        if (!category.parentId) return category.name;
-        const parent = allCategories.find(c => c.id === category.parentId);
-        if (parent) {
-            return `${buildCategoryPath(parent, allCategories)} > ${category.name}`;
-        }
-        return category.name;
+        const depth = category._depth || 0;
+        const indent = '\u00A0\u00A0\u00A0\u00A0'.repeat(depth);
+        return `${indent}${depth > 0 ? "— " : ""}${category.name}`;
     }
 
     async function handleSaveProduct(e?: React.FormEvent, ignoreWarning: boolean = false) {
@@ -104,6 +122,7 @@ export default function ProductsAdminPage() {
         if (editProductId) {
             await updateProduct(editProductId, {
                 name: productName,
+                price: productPrice === "" ? null : productPrice,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
                 images: images,
@@ -113,6 +132,7 @@ export default function ProductsAdminPage() {
         } else {
             await createProduct({
                 name: productName,
+                price: productPrice === "" ? null : productPrice,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
                 images: images,
@@ -127,6 +147,7 @@ export default function ProductsAdminPage() {
     function handleEditProduct(prod: any) {
         setEditProductId(prod.id);
         setProductName(prod.name);
+        setProductPrice(prod.price ?? "");
         setProductCategoryId(prod.categoryId || "");
         setProductIsHidden(prod.isHidden || false);
         setImages(prod.images || []);
@@ -154,26 +175,36 @@ export default function ProductsAdminPage() {
         });
     }
 
-    async function handleToggleProductVisibility(prod: any) {
-        await updateProduct(prod.id, {
-            name: prod.name,
-            categoryId: prod.categoryId,
-            isHidden: !prod.isHidden,
-            images: prod.images || [],
-            fields: prod.fields.map((f: any) => ({
-                name: f.name,
-                type: f.type,
-                stringValue: f.stringValue,
-                numberValue: f.numberValue,
-                unit: f.unit
-            }))
-        });
-        await loadData(false);
+    async function handleToggleProductVisibility(prod: any, e?: React.MouseEvent) {
+        if (e) e.stopPropagation();
+        const originalProducts = [...products];
+        setProducts(products.map(p => p.id === prod.id ? { ...p, isHidden: !p.isHidden } : p));
+        try {
+            await updateProduct(prod.id, {
+                name: prod.name,
+                price: prod.price,
+                categoryId: prod.categoryId,
+                isHidden: !prod.isHidden,
+                images: prod.images || [],
+                fields: prod.fields.map((f: any) => ({
+                    name: f.name,
+                    type: f.type,
+                    stringValue: f.stringValue,
+                    numberValue: f.numberValue,
+                    unit: f.unit
+                }))
+            });
+            toast.success(prod.isHidden ? "Ürün görünür yapıldı." : "Ürün gizlendi.");
+        } catch (error) {
+            setProducts(originalProducts);
+            toast.error("Hata oluştu, işlem geri alındı.");
+        }
     }
 
     function resetProductForm() {
         setEditProductId(null);
         setProductName("");
+        setProductPrice("");
         setImages([]);
         setFields([]);
         setProductIsHidden(false);
@@ -235,6 +266,17 @@ export default function ProductsAdminPage() {
                             </div>
 
                             <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none">Fiyat (₺)</label>
+                                <input 
+                                    type="number" 
+                                    placeholder="Örn: 1500" 
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={productPrice}
+                                    onChange={(e) => setProductPrice(e.target.value === "" ? "" : parseFloat(e.target.value))}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none">Kategori Seçin</label>
                                 <select 
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -244,7 +286,7 @@ export default function ProductsAdminPage() {
                                 >
                                     <option value="">-- Kategori Seçin --</option>
                                     {categories.map(c => (
-                                        <option key={c.id} value={c.id}>{buildCategoryPath(c, categories)}</option>
+                                        <option key={c.id} value={c.id}>{buildCategoryPath(c)}</option>
                                     ))}
                                 </select>
                             </div>
@@ -258,7 +300,7 @@ export default function ProductsAdminPage() {
                                     className="h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                                 />
                                 <label htmlFor="productIsHidden" className="text-sm font-medium leading-none">
-                                    Gizli Mod (Ürünü Kullanıcılardan Gizle)
+                                    Gizli Mod (Sitede görünmez)
                                 </label>
                             </div>
                         </div>
@@ -362,63 +404,109 @@ export default function ProductsAdminPage() {
                         <div className="divide-y divide-border">
                             {categorizedProducts.length === 0 ? (
                                 <div className="p-8 text-center text-muted-foreground">Kayıtlı ürün bulunmuyor.</div>
-                            ) : categorizedProducts.map(p => (
-                                <div key={p.id} className={`p-4 flex flex-col sm:flex-row gap-4 sm:items-center justify-between hover:bg-muted/50 transition-colors ${p.isHidden ? 'opacity-70 bg-muted/20' : ''}`}>
-                                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between flex-1 min-w-0">
-                                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                                            {/* Thumbnail */}
-                                            <div className="w-16 h-16 shrink-0 rounded-md bg-muted border overflow-hidden flex items-center justify-center">
-                                                {p.images && p.images.length > 0 ? (
-                                                    // eslint-disable-next-line @next/next/no-img-element
-                                                    <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <ImageIcon className="w-6 h-6 text-muted-foreground/30" />
+                            ) : categories.filter(c => categorizedProducts.some(p => p.categoryId === c.id)).map(cat => {
+                                const catProducts = categorizedProducts.filter(p => p.categoryId === cat.id);
+                                return (
+                                <div key={cat.id} className="mb-4">
+                                    <div 
+                                        className="px-4 py-2 bg-muted/20 font-semibold text-sm text-muted-foreground sticky top-0 z-10 border-y"
+                                        style={{ paddingLeft: `calc(1rem + ${(cat._depth || 0) * 1.5}rem)` }}
+                                    >
+                                        {cat.name} ({catProducts.length} ürün)
+                                    </div>
+                                    <div className="divide-y divide-border">
+                                        {catProducts.map(p => (
+                                            <div 
+                                                key={p.id} 
+                                                className={`p-4 hover:bg-muted/50 transition-colors cursor-pointer ${p.isHidden ? 'opacity-70 bg-muted/20' : ''}`}
+                                                style={{ paddingLeft: `calc(1rem + ${(cat._depth || 0) * 1.5}rem)` }}
+                                                onClick={() => setExpandedProductId(expandedProductId === p.id ? null : p.id)}
+                                            >
+                                                <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+                                                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between flex-1 min-w-0">
+                                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                            {/* Thumbnail */}
+                                                            <div className="w-16 h-16 shrink-0 rounded-md bg-muted border overflow-hidden flex items-center justify-center">
+                                                                {p.images && p.images.length > 0 ? (
+                                                                    <ImageWithSpinner src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <ImageIcon className="w-6 h-6 text-muted-foreground/30" />
+                                                                )}
+                                                            </div>
+                                                            
+                                                            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <h4 className="font-semibold text-foreground truncate">{p.name}</h4>
+                                                                    {p.isHidden && (
+                                                                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold border-transparent bg-secondary text-secondary-foreground">
+                                                                            Gizli
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {p.price && <p className="text-xs font-semibold text-primary">{p.price} ₺</p>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                                                        <button 
+                                                            onClick={(e) => handleToggleProductVisibility(p, e)} 
+                                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 gap-1.5 w-[90px]"
+                                                        >
+                                                            {!p.isHidden ? (
+                                                                <><Eye className="w-3.5 h-3.5" /> Görünür</>
+                                                            ) : (
+                                                                <><EyeOff className="w-3.5 h-3.5" /> Gizli</>
+                                                            )}
+                                                        </button>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleEditProduct(p); }} 
+                                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 px-3 gap-1.5"
+                                                        >
+                                                            <Pencil className="w-3.5 h-3.5" /> Düzenle
+                                                        </button>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteProduct(p.id); }} 
+                                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 px-3 gap-1.5"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Expanded Area */}
+                                                {expandedProductId === p.id && (
+                                                    <div className="mt-4 pt-4 border-t border-border/50 text-sm cursor-default" onClick={e => e.stopPropagation()}>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <p className="font-medium text-muted-foreground mb-2">Özellikler:</p>
+                                                                <ul className="list-disc list-inside space-y-1">
+                                                                    {p.fields.length === 0 ? <li className="text-muted-foreground">Özellik eklenmemiş.</li> : 
+                                                                    p.fields.map((f: any) => (
+                                                                        <li key={f.id}>
+                                                                            <span className="font-medium">{f.name}:</span> {f.type === 'STRING' ? f.stringValue : `${f.numberValue} ${f.unit}`}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-muted-foreground mb-2">Fotoğraflar ({p.images?.length || 0}):</p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {p.images?.map((img: string, i: number) => (
+                                                                        <div key={i} className="w-16 h-16 rounded bg-muted overflow-hidden border">
+                                                                            <ImageWithSpinner src={img} className="w-full h-full object-cover" />
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
-                                            
-                                            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <h4 className="font-semibold text-foreground truncate">{p.name}</h4>
-                                                    {p.isHidden && (
-                                                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold border-transparent bg-secondary text-secondary-foreground">
-                                                    Gizli
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground truncate">
-                                            Kategori: {buildCategoryPath(p.category, categories)}
-                                        </p>
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                            {p.fields.slice(0, 3).map((f: any) => (
-                                                <span key={f.id} className="inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[10px] font-medium bg-background text-muted-foreground">
-                                                    <span className="font-semibold mr-1">{f.name}:</span>
-                                                    {f.type === 'STRING' && f.stringValue}
-                                                    {f.type === 'NUMBER_UNIT' && `${f.numberValue} ${f.unit}`}
-                                                </span>
-                                            ))}
-                                            {p.fields.length > 3 && (
-                                                <span className="inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[10px] font-medium bg-background text-muted-foreground">
-                                                    +{p.fields.length - 3} daha
-                                                </span>
-                                            )}
-                                        </div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
-                                    
-                                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                                        <button onClick={() => handleToggleProductVisibility(p)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3">
-                                            {p.isHidden ? "Göster" : "Gizle"}
-                                        </button>
-                                        <button onClick={() => handleEditProduct(p)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 px-3">
-                                            Düzenle
-                                        </button>
-                                        <button onClick={() => handleDeleteProduct(p.id)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 px-3">
-                                            Sil
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
 

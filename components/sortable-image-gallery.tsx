@@ -1,5 +1,6 @@
 import { useState, DragEvent } from "react";
 import { X } from "lucide-react";
+import { ImageWithSpinner } from "./image-with-spinner";
 
 export function SortableImageGallery({
     images,
@@ -79,8 +80,7 @@ export function SortableImageGallery({
                         `}
                     >
                         {/* pointer-events-none is crucial so drag events don't get swallowed by the image */}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img} alt={`Product ${idx}`} className="w-full h-full object-cover pointer-events-none" />
+                        <ImageWithSpinner src={img} alt={`Product ${idx}`} className="w-full h-full object-cover pointer-events-none" />
                         
                         {/* Thumbnail Badge */}
                         {idx === 0 && (

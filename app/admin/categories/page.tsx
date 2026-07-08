@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createCategory, getCategories, updateCategory, deleteCategory } from "../actions";
 import Loading from "./loading";
-import { Folders } from "lucide-react";
+import { Folders, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CategoriesAdminPage() {
@@ -22,7 +22,25 @@ export default function CategoriesAdminPage() {
     async function loadData(showLoading = true) {
         if (showLoading) setIsLoading(true);
         const cats = await getCategories();
-        setCategories(cats);
+        
+        // Ağaç yapısına göre sıralama
+        const sortedCats: any[] = [];
+        const roots = cats.filter(c => !c.parentId).sort((a, b) => a.name.localeCompare(b.name));
+        function traverse(parentId: string, depth: number) {
+            const children = cats.filter(c => c.parentId === parentId).sort((a, b) => a.name.localeCompare(b.name));
+            for (const child of children) {
+                child._depth = depth;
+                sortedCats.push(child);
+                traverse(child.id, depth + 1);
+            }
+        }
+        for (const root of roots) {
+            root._depth = 0;
+            sortedCats.push(root);
+            traverse(root.id, 1);
+        }
+        
+        setCategories(sortedCats);
         if (showLoading) setIsLoading(false);
     }
 
@@ -110,14 +128,11 @@ export default function CategoriesAdminPage() {
         setCategoryIsHidden(false);
     }
 
-    function buildCategoryPath(category: any, allCategories: any[]): string {
+    function buildCategoryPath(category: any): string {
         if (!category) return "";
-        if (!category.parentId) return category.name;
-        const parent = allCategories.find(c => c.id === category.parentId);
-        if (parent) {
-            return `${buildCategoryPath(parent, allCategories)} > ${category.name}`;
-        }
-        return category.name;
+        const depth = category._depth || 0;
+        const indent = '\u00A0\u00A0\u00A0\u00A0'.repeat(depth);
+        return `${indent}${depth > 0 ? "— " : ""}${category.name}`;
     }
 
     if (isLoading) return <div className="p-8 text-center text-muted-foreground">Yükleniyor...</div>;
@@ -161,7 +176,7 @@ export default function CategoriesAdminPage() {
                             >
                                 <option value="">-- Üst Kategori Yok --</option>
                                 {categories.filter(c => c.id !== editCategoryId).map(c => (
-                                    <option key={c.id} value={c.id}>{buildCategoryPath(c, categories)}</option>
+                                    <option key={c.id} value={c.id}>{buildCategoryPath(c)}</option>
                                 ))}
                             </select>
                         </div>
@@ -175,7 +190,7 @@ export default function CategoriesAdminPage() {
                                 className="h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                             />
                             <label htmlFor="isHidden" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Gizli Mod (Kullanıcılara gösterilmez)
+                                Gizli Mod (Sitede görünmez)
                             </label>
                         </div>
 
@@ -202,10 +217,10 @@ export default function CategoriesAdminPage() {
                     ) : (
                         <div className="divide-y divide-border">
                             {categories.map(c => (
-                                <div key={c.id} className={`flex items-center justify-between p-4 hover:bg-muted/50 transition-colors ${c.isHidden ? 'opacity-70 bg-muted/20' : ''}`}>
+                                <div key={c.id} style={{ paddingLeft: `${(c._depth || 0) * 1.5 + 1}rem` }} className={`flex items-center justify-between p-4 pr-4 py-4 hover:bg-muted/50 transition-colors ${c.isHidden ? 'opacity-70 bg-muted/20' : ''}`}>
                                     <div className="flex flex-col gap-1">
                                         <span className="font-medium text-foreground">
-                                            {buildCategoryPath(c, categories)}
+                                            {c.name}
                                         </span>
                                         {c.isHidden && (
                                             <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 w-fit">
@@ -214,14 +229,18 @@ export default function CategoriesAdminPage() {
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => handleToggleCategoryVisibility(c)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3">
-                                            {c.isHidden ? "Göster" : "Gizle"}
+                                        <button onClick={() => handleToggleCategoryVisibility(c)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 gap-1.5 w-[90px]">
+                                            {!c.isHidden ? (
+                                                <><Eye className="w-3.5 h-3.5" /> Görünür</>
+                                            ) : (
+                                                <><EyeOff className="w-3.5 h-3.5" /> Gizli</>
+                                            )}
                                         </button>
-                                        <button onClick={() => handleEditCategory(c)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 px-3">
-                                            Düzenle
+                                        <button onClick={() => handleEditCategory(c)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 px-3 gap-1.5">
+                                            <Pencil className="w-3.5 h-3.5" /> Düzenle
                                         </button>
-                                        <button onClick={() => handleDeleteCategory(c.id)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 px-3">
-                                            Sil
+                                        <button onClick={() => handleDeleteCategory(c.id)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 px-3 gap-1.5">
+                                            <Trash2 className="w-3.5 h-3.5" /> Sil
                                         </button>
                                     </div>
                                 </div>

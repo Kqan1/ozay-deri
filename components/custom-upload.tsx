@@ -11,6 +11,7 @@ export function CustomUploadDropzone({
     onUploadComplete: (urls: string[]) => void;
 }) {
     const [isDragging, setIsDragging] = useState(false);
+    const [localUploading, setLocalUploading] = useState(false);
     
     const { startUpload, isUploading } = useUploadThing("productImage", {
         onClientUploadComplete: (res) => {
@@ -20,6 +21,7 @@ export function CustomUploadDropzone({
         },
         onUploadError: (e) => {
             toast.error(`Hata: ${e.message}`);
+            setLocalUploading(false);
             onUploadComplete([]); // Signal end of upload on error
         },
         onUploadBegin: () => {
@@ -30,7 +32,10 @@ export function CustomUploadDropzone({
     const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
         const files = Array.from(e.target.files);
+        setLocalUploading(true);
+        onUploadBegin();
         await startUpload(files);
+        setLocalUploading(false);
         e.target.value = ''; // Reset input
     };
 
@@ -39,12 +44,17 @@ export function CustomUploadDropzone({
         setIsDragging(false);
         if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
         const files = Array.from(e.dataTransfer.files);
+        setLocalUploading(true);
+        onUploadBegin();
         await startUpload(files);
+        setLocalUploading(false);
     };
+
+    const showLoading = isUploading || localUploading;
 
     return (
         <div 
-            className={`mt-4 border-2 border-dashed rounded-lg p-8 transition-colors flex flex-col items-center justify-center gap-3 relative overflow-hidden ${isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:bg-muted/10'} ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}
+            className={`mt-4 border-2 border-dashed rounded-lg p-8 transition-colors flex flex-col items-center justify-center gap-3 relative overflow-hidden ${isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:bg-muted/10'} ${showLoading ? 'opacity-70 pointer-events-none' : ''}`}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
             onDrop={onDrop}
@@ -55,9 +65,9 @@ export function CustomUploadDropzone({
                 accept="image/*" 
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
                 onChange={onFileChange}
-                disabled={isUploading}
+                disabled={showLoading}
             />
-            {isUploading ? (
+            {showLoading ? (
                 <>
                     <Loader2 className="w-8 h-8 text-primary animate-spin" />
                     <p className="text-sm font-medium">Yükleniyor...</p>

@@ -36,7 +36,13 @@ export async function updateCategory(id: string, data: { name: string; parentId?
 export async function deleteCategory(id: string, deleteProducts: boolean) {
   await requireAdmin();
   if (deleteProducts) {
-    // Kategoriye ait ürünleri sil
+    const productsToDelete = await prisma.product.findMany({ where: { categoryId: id } });
+    const keys = productsToDelete.flatMap(p => p.images).map(url => url.split("/f/")[1]).filter(Boolean);
+    if (keys.length > 0) {
+      const { UTApi } = await import("uploadthing/server");
+      const utapi = new UTApi();
+      await utapi.deleteFiles(keys);
+    }
     await prisma.product.deleteMany({
       where: { categoryId: id },
     });
@@ -63,6 +69,7 @@ export type CreateProductInput = {
   name: string;
   categoryId: string | null;
   isHidden?: boolean;
+  price?: number | null;
   images: string[];
   fields: {
     name: string;
@@ -78,6 +85,7 @@ export async function createProduct(data: CreateProductInput) {
   const product = await prisma.product.create({
     data: {
       name: data.name,
+      price: data.price ?? null,
       categoryId: data.categoryId,
       isHidden: data.isHidden || false,
       images: data.images,
@@ -102,6 +110,18 @@ export async function createProduct(data: CreateProductInput) {
 
 export async function updateProduct(id: string, data: CreateProductInput) {
   await requireAdmin();
+
+  const oldProduct = await prisma.product.findUnique({ where: { id } });
+  if (oldProduct) {
+    const removedImages = oldProduct.images.filter(img => !data.images.includes(img));
+    const keys = removedImages.map(url => url.split("/f/")[1]).filter(Boolean);
+    if (keys.length > 0) {
+      const { UTApi } = await import("uploadthing/server");
+      const utapi = new UTApi();
+      await utapi.deleteFiles(keys);
+    }
+  }
+
   // Önce eski özellikleri sil, sonra yenilerini ekle (Prisma'da ilişkisel array'i tamamen güncellemenin en kolay yolu)
   await prisma.productField.deleteMany({
     where: { productId: id },
@@ -111,6 +131,7 @@ export async function updateProduct(id: string, data: CreateProductInput) {
     where: { id },
     data: {
       name: data.name,
+      price: data.price ?? null,
       categoryId: data.categoryId,
       isHidden: data.isHidden,
       images: data.images,
@@ -135,6 +156,17 @@ export async function updateProduct(id: string, data: CreateProductInput) {
 
 export async function deleteProduct(id: string) {
   await requireAdmin();
+
+  const oldProduct = await prisma.product.findUnique({ where: { id } });
+  if (oldProduct?.images?.length) {
+    const keys = oldProduct.images.map(url => url.split("/f/")[1]).filter(Boolean);
+    if (keys.length > 0) {
+      const { UTApi } = await import("uploadthing/server");
+      const utapi = new UTApi();
+      await utapi.deleteFiles(keys);
+    }
+  }
+
   const product = await prisma.product.delete({
     where: { id },
   });
