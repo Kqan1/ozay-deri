@@ -1,6 +1,4 @@
-import { PrismaClient } from './app/generated/prisma'
-
-const prisma = new PrismaClient()
+import prisma from './lib/db'
 
 async function main() {
   await prisma.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS pg_trgm;')

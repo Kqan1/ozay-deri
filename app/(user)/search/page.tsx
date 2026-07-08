@@ -137,7 +137,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     const params = new URLSearchParams();
     params.set("q", q);
     for (const [k, v] of Object.entries(activeFilters)) {
-      if (k !== key) params.set(k, v);
+      if (k !== key) params.set(k, v.join(","));
     }
     if (value) params.set(key, value);
     return `/search?${params.toString()}`;

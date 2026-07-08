@@ -33,8 +33,8 @@ export default function ProductsAdminPage() {
         loadData();
     }, []);
 
-    async function loadData() {
-        setIsLoading(true);
+    async function loadData(showLoading = true) {
+        if (showLoading) setIsLoading(true);
         const cats = await getCategories();
         const prods = await getProducts();
         const fdefs = await getFieldDefinitions();
@@ -121,7 +121,7 @@ export default function ProductsAdminPage() {
             toast.success("Yeni ürün eklendi.");
         }
         resetProductForm();
-        await loadData();
+        await loadData(false);
     }
 
     function handleEditProduct(prod: any) {
@@ -147,7 +147,7 @@ export default function ProductsAdminPage() {
                 onClick: async () => {
                     await deleteProduct(id);
                     toast.success("Ürün silindi.");
-                    await loadData();
+                    await loadData(false);
                 }
             },
             cancel: { label: "İptal", onClick: () => {} }
@@ -168,7 +168,7 @@ export default function ProductsAdminPage() {
                 unit: f.unit
             }))
         });
-        await loadData();
+        await loadData(false);
     }
 
     function resetProductForm() {

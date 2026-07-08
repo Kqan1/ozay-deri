@@ -47,25 +47,11 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.role = (user as any).role;
                 token.username = (user as any).username;
-            } else if (token.id) {
-                // Fetch latest data from database to ensure user still exists and cache is updated
-                try {
-                    const dbUser = await db.user.findUnique({
-                        where: { id: token.id as string }
-                    });
-                    
-                    if (!dbUser) {
-                        // User was deleted from database, invalidate token
-                        return { ...token, error: "UserDeleted" };
-                    }
-                    
-                    // Always keep token synced with database
-                    token.role = dbUser.role;
-                    token.username = dbUser.username;
-                } catch (error) {
-                    console.error("Error fetching user in jwt callback:", error);
-                }
             }
+            // else if (token.id) { ... } 
+            // NOTE: Fetching the user from the database on every JWT evaluation (which happens on every useSession/getServerSession) 
+            // causes severe connection pool and DNS exhaustion (EAI_AGAIN errors) in production.
+            // Trust the JWT payload. If you need to invalidate sessions, use session rotation or check in specific server actions.
 
             if (trigger === "update" && session) {
                 if (session.username) token.username = session.username;

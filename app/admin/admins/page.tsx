@@ -24,11 +24,11 @@ export default function ManageAdminsPage() {
         loadData();
     }, []);
 
-    async function loadData() {
-        setIsLoading(true);
+    async function loadData(showLoading = true) {
+        if (showLoading) setIsLoading(true);
         const data = await getAdmins();
         setAdmins(data);
-        setIsLoading(false);
+        if (showLoading) setIsLoading(false);
     }
 
     if (isLoading) return <Loading />;
@@ -50,7 +50,7 @@ export default function ManageAdminsPage() {
             setName("");
             setUsername("");
             setPassword("");
-            await loadData();
+            await loadData(false);
         }
         setIsSubmitting(false);
     }
@@ -71,7 +71,7 @@ export default function ManageAdminsPage() {
                         if ((session.user as any).id === id) {
                             signOut({ callbackUrl: '/' });
                         } else {
-                            await loadData();
+                            await loadData(false);
                         }
                     }
                 }

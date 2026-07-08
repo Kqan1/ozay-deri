@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [username, setUsername] = useState("");
@@ -166,5 +166,13 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center p-8"><Loader2 size={24} className="animate-spin text-indigo-500" /></div>}>
+            <LoginForm />
+        </Suspense>
     );
 }

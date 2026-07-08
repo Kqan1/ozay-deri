@@ -42,11 +42,11 @@ export async function getLiveSearchSuggestions(query: string) {
        )
     ORDER BY "simScore" DESC
     LIMIT 5
-  `;
+  ` as any[];
 
-  console.log(`[Live Search] Query: "${query}" | Results:`, results.map(r => ({ name: r.name, simScore: r.simScore })));
+  console.log(`[Live Search] Query: "${query}" | Results:`, results.map((r: any) => ({ name: r.name, simScore: r.simScore })));
 
-  return results as any[];
+  return results;
 }
 
 export async function logEmptySearch(term: string) {

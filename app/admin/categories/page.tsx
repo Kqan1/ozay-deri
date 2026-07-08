@@ -19,11 +19,11 @@ export default function CategoriesAdminPage() {
         loadData();
     }, []);
 
-    async function loadData() {
-        setIsLoading(true);
+    async function loadData(showLoading = true) {
+        if (showLoading) setIsLoading(true);
         const cats = await getCategories();
         setCategories(cats);
-        setIsLoading(false);
+        if (showLoading) setIsLoading(false);
     }
 
     if (isLoading) return <Loading />;
@@ -45,7 +45,7 @@ export default function CategoriesAdminPage() {
             });
         }
         resetForm();
-        await loadData();
+        await loadData(false);
     }
 
     function handleEditCategory(cat: any) {
@@ -66,7 +66,7 @@ export default function CategoriesAdminPage() {
                             toast.dismiss(t); 
                             await deleteCategory(id, true); 
                             toast.success("Kategori ve içindeki tüm ürünler silindi.");
-                            await loadData(); 
+                            await loadData(false); 
                         }} 
                         className="bg-destructive hover:bg-destructive/90 text-destructive-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors"
                     >
@@ -77,7 +77,7 @@ export default function CategoriesAdminPage() {
                             toast.dismiss(t); 
                             await deleteCategory(id, false); 
                             toast.success("Kategori silindi. Ürünler 'Kategorisiz' olarak korundu.");
-                            await loadData(); 
+                            await loadData(false); 
                         }} 
                         className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors"
                     >
@@ -100,7 +100,7 @@ export default function CategoriesAdminPage() {
             parentId: cat.parentId,
             isHidden: !cat.isHidden
         });
-        await loadData();
+        await loadData(false);
     }
 
     function resetForm() {

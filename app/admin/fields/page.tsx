@@ -26,12 +26,12 @@ export default function FieldsAdminPage() {
         loadData();
     }, []);
 
-    async function loadData() {
-        setIsLoading(true);
+    async function loadData(showLoading = true) {
+        if (showLoading) setIsLoading(true);
         const [fData, cData] = await Promise.all([getFieldDefinitions(), getCategories()]);
         setFields(fData);
         setCategories(cData);
-        setIsLoading(false);
+        if (showLoading) setIsLoading(false);
     }
 
     if (isLoading) return <Loading />;
@@ -53,7 +53,7 @@ export default function FieldsAdminPage() {
         toast.success(editFieldId ? "Alan başarıyla güncellendi." : "Yeni alan oluşturuldu.");
         
         resetForm();
-        await loadData();
+        await loadData(false);
     }
 
     function handleEditField(field: any) {
@@ -86,7 +86,7 @@ export default function FieldsAdminPage() {
                 onClick: async () => {
                     await deleteFieldDefinition(id);
                     toast.success("Alan başarıyla silindi.");
-                    await loadData();
+                    await loadData(false);
                 }
             },
             cancel: { label: "İptal", onClick: () => {} }
