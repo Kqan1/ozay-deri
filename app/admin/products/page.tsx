@@ -7,10 +7,11 @@ import {
     updateProduct, deleteProduct,
     getFieldDefinitions
 } from "../actions";
-import { UploadButton } from "@/utils/uploadthing";
+import { CustomUploadDropzone } from "@/components/custom-upload";
+import { SortableImageGallery } from "@/components/sortable-image-gallery";
 import Link from "next/link";
 import Loading from "./loading";
-import { Package } from "lucide-react";
+import { Package, X, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ProductsAdminPage() {
@@ -24,6 +25,8 @@ export default function ProductsAdminPage() {
     const [productName, setProductName] = useState("");
     const [productCategoryId, setProductCategoryId] = useState("");
     const [productIsHidden, setProductIsHidden] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [images, setImages] = useState<string[]>([]);
     const [fields, setFields] = useState<CreateProductInput["fields"]>([]);
 
     useEffect(() => {
@@ -56,7 +59,7 @@ export default function ProductsAdminPage() {
 
     async function handleSaveProduct(e?: React.FormEvent, ignoreWarning: boolean = false) {
         if (e) e.preventDefault();
-        if (!productName) return;
+        if (!productName || isUploading) return;
 
         const applicableFieldDefs = fieldDefinitions.filter(
             (fd) => fd.isGlobal || fd.categoryId === productCategoryId
@@ -93,7 +96,7 @@ export default function ProductsAdminPage() {
                 unit: existing?.unit || ""
             };
         }).filter(f => {
-            if (f.type === 'STRING' || f.type === 'PHOTO') return !!f.stringValue;
+            if (f.type === 'STRING') return !!f.stringValue;
             if (f.type === 'NUMBER_UNIT') return f.numberValue !== null && !isNaN(f.numberValue);
             return false;
         });
@@ -103,6 +106,7 @@ export default function ProductsAdminPage() {
                 name: productName,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
+                images: images,
                 fields: fieldsToSave,
             });
             toast.success("Ürün başarıyla güncellendi.");
@@ -111,6 +115,7 @@ export default function ProductsAdminPage() {
                 name: productName,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
+                images: images,
                 fields: fieldsToSave,
             });
             toast.success("Yeni ürün eklendi.");
@@ -124,6 +129,7 @@ export default function ProductsAdminPage() {
         setProductName(prod.name);
         setProductCategoryId(prod.categoryId || "");
         setProductIsHidden(prod.isHidden || false);
+        setImages(prod.images || []);
         setFields(prod.fields.map((f: any) => ({
             name: f.name,
             type: f.type,
@@ -153,6 +159,7 @@ export default function ProductsAdminPage() {
             name: prod.name,
             categoryId: prod.categoryId,
             isHidden: !prod.isHidden,
+            images: prod.images || [],
             fields: prod.fields.map((f: any) => ({
                 name: f.name,
                 type: f.type,
@@ -167,8 +174,10 @@ export default function ProductsAdminPage() {
     function resetProductForm() {
         setEditProductId(null);
         setProductName("");
+        setImages([]);
         setFields([]);
         setProductIsHidden(false);
+        setIsUploading(false);
         if (categories.length > 0) setProductCategoryId(categories[0].id);
     }
 
@@ -254,6 +263,28 @@ export default function ProductsAdminPage() {
                             </div>
                         </div>
 
+                        {/* Fotoğraf Galerisi */}
+                        <div className="space-y-4 pt-4 border-t">
+                            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4" /> Ürün Galerisi
+                            </h3>
+                            <SortableImageGallery 
+                                images={images} 
+                                onImagesChange={setImages} 
+                            />
+                            {images.length < 50 && (
+                                <CustomUploadDropzone 
+                                    onUploadBegin={() => setIsUploading(true)}
+                                    onUploadComplete={(urls) => {
+                                        setIsUploading(false);
+                                        if (urls.length > 0) {
+                                            setImages(prev => [...prev, ...urls]);
+                                        }
+                                    }}
+                                />
+                            )}
+                        </div>
+
                         {productCategoryId && (
                             <div className="space-y-4 pt-4 border-t">
                                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Kategori Özellikleri</h3>
@@ -267,7 +298,7 @@ export default function ProductsAdminPage() {
                                         <div key={i} className="space-y-2 p-3 border rounded bg-muted/20">
                                             <label className="text-sm font-medium flex items-center justify-between">
                                                 {fd.name}
-                                                <span className="text-[10px] text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">{fd.type === 'STRING' ? 'Metin' : fd.type === 'NUMBER_UNIT' ? 'Sayı+Birim' : 'Fotoğraf'}</span>
+                                                <span className="text-[10px] text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">{fd.type === 'STRING' ? 'Metin' : 'Sayı+Birim'}</span>
                                             </label>
 
                                             {fd.type === "STRING" && (
@@ -302,39 +333,6 @@ export default function ProductsAdminPage() {
                                                     </select>
                                                 </div>
                                             )}
-
-                                            {fd.type === "PHOTO" && (
-                                                <div className="mt-1">
-                                                    {currentVal.stringValue ? (
-                                                        <div className="flex items-center justify-between border rounded p-2 bg-background">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-8 h-8 relative rounded overflow-hidden bg-muted">
-                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                    <img src={currentVal.stringValue} alt="Preview" className="object-cover w-full h-full" />
-                                                                </div>
-                                                                <span className="text-xs text-green-600 font-medium">Yüklendi</span>
-                                                            </div>
-                                                            <button type="button" onClick={() => updateFieldByName(fd.name, fd.type, "stringValue", "")} className="text-xs text-destructive hover:underline px-2 py-1">
-                                                                Kaldır
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="border border-dashed rounded-lg p-4 flex justify-center bg-background">
-                                                            <UploadButton
-                                                                endpoint="productImage"
-                                                                onClientUploadComplete={(res) => {
-                                                                    if(res && res[0]) {
-                                                                        updateFieldByName(fd.name, fd.type, "stringValue", res[0].url);
-                                                                    }
-                                                                }}
-                                                                onUploadError={(error: Error) => {
-                                                                    toast.error(`Hata: ${error.message}`);
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
                                         </div>
                                     )
                                 })}
@@ -342,8 +340,8 @@ export default function ProductsAdminPage() {
                         )}
 
                         <div className="flex gap-3 pt-4">
-                            <button type="submit" className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
-                                {editProductId ? "Değişiklikleri Kaydet" : "Ürünü Ekle"}
+                            <button type="submit" disabled={isUploading} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+                                {isUploading ? "Fotoğraf Yükleniyor..." : (editProductId ? "Değişiklikleri Kaydet" : "Ürünü Ekle")}
                             </button>
                             {editProductId && (
                                 <button type="button" onClick={resetProductForm} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full">
@@ -366,10 +364,22 @@ export default function ProductsAdminPage() {
                                 <div className="p-8 text-center text-muted-foreground">Kayıtlı ürün bulunmuyor.</div>
                             ) : categorizedProducts.map(p => (
                                 <div key={p.id} className={`p-4 flex flex-col sm:flex-row gap-4 sm:items-center justify-between hover:bg-muted/50 transition-colors ${p.isHidden ? 'opacity-70 bg-muted/20' : ''}`}>
-                                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <h4 className="font-semibold text-foreground truncate">{p.name}</h4>
-                                            {p.isHidden && (
+                                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between flex-1 min-w-0">
+                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                            {/* Thumbnail */}
+                                            <div className="w-16 h-16 shrink-0 rounded-md bg-muted border overflow-hidden flex items-center justify-center">
+                                                {p.images && p.images.length > 0 ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <ImageIcon className="w-6 h-6 text-muted-foreground/30" />
+                                                )}
+                                            </div>
+                                            
+                                            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <h4 className="font-semibold text-foreground truncate">{p.name}</h4>
+                                                    {p.isHidden && (
                                                 <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold border-transparent bg-secondary text-secondary-foreground">
                                                     Gizli
                                                 </span>
@@ -384,7 +394,6 @@ export default function ProductsAdminPage() {
                                                     <span className="font-semibold mr-1">{f.name}:</span>
                                                     {f.type === 'STRING' && f.stringValue}
                                                     {f.type === 'NUMBER_UNIT' && `${f.numberValue} ${f.unit}`}
-                                                    {f.type === 'PHOTO' && 'Fotoğraf var'}
                                                 </span>
                                             ))}
                                             {p.fields.length > 3 && (
@@ -393,7 +402,9 @@ export default function ProductsAdminPage() {
                                                 </span>
                                             )}
                                         </div>
+                                        </div>
                                     </div>
+                                </div>
                                     
                                     <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                                         <button onClick={() => handleToggleProductVisibility(p)} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3">

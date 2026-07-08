@@ -49,6 +49,7 @@ model Product {
   categoryId  String?
   category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   fields      ProductField[]
+  images      String[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 }
@@ -58,9 +59,9 @@ model ProductField {
   productId   String
   product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   
-  name        String     // e.g. "Kumaş", "Ağırlık", "Ön Yüz Fotoğrafı"
-  type        FieldType  // enum: STRING, NUMBER_UNIT, PHOTO
-  
+  name        String     // e.g. "Kumaş", "Ağırlık"
+  type        FieldType  // enum: STRING, NUMBER_UNIT
+
   stringValue String?
   numberValue Float?
   unit        String?
@@ -69,7 +70,6 @@ model ProductField {
 enum FieldType {
   STRING
   NUMBER_UNIT
-  PHOTO
 }
 
 model FieldDefinition {

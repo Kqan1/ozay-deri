@@ -63,9 +63,10 @@ export type CreateProductInput = {
   name: string;
   categoryId: string | null;
   isHidden?: boolean;
+  images: string[];
   fields: {
     name: string;
-    type: "STRING" | "NUMBER_UNIT" | "PHOTO";
+    type: "STRING" | "NUMBER_UNIT";
     stringValue?: string | null;
     numberValue?: number | null;
     unit?: string | null;
@@ -79,6 +80,7 @@ export async function createProduct(data: CreateProductInput) {
       name: data.name,
       categoryId: data.categoryId,
       isHidden: data.isHidden || false,
+      images: data.images,
       fields: {
         create: data.fields.map((f) => ({
           name: f.name,
@@ -111,6 +113,7 @@ export async function updateProduct(id: string, data: CreateProductInput) {
       name: data.name,
       categoryId: data.categoryId,
       isHidden: data.isHidden,
+      images: data.images,
       fields: {
         create: data.fields.map((f) => ({
           name: f.name,

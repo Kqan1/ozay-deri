@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 export async function createFieldDefinition(formData: FormData) {
   const id = formData.get("id") as string | null;
   const name = formData.get("name") as string;
-  const type = formData.get("type") as "STRING" | "NUMBER_UNIT" | "PHOTO";
+  const type = formData.get("type") as "STRING" | "NUMBER_UNIT";
   const isGlobal = formData.get("isGlobal") === "true";
   const categoryId = formData.get("categoryId") as string | null;
   const isFilterable = formData.get("isFilterable") === "on";

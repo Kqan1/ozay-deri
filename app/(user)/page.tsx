@@ -47,15 +47,13 @@ function CategoryNode({ node, depth = 0 }: { node: CategoryTree, depth?: number 
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {node.products.map(product => {
-                        const photoField = product.fields.find((f: any) => f.type === 'PHOTO');
-                        
                         return (
                             <div key={product.id} className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 bg-white dark:bg-zinc-900 shadow-sm flex flex-col gap-4 hover:shadow-md transition-shadow">
-                                {photoField?.stringValue ? (
+                                {product.images && product.images.length > 0 ? (
                                     <div className="aspect-[4/3] bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden relative">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img 
-                                            src={photoField.stringValue} 
+                                            src={product.images[0]} 
                                             alt={product.name}
                                             className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
                                         />
@@ -71,7 +69,7 @@ function CategoryNode({ node, depth = 0 }: { node: CategoryTree, depth?: number 
                                 </div>
 
                                 <div className="space-y-2 mt-auto text-sm">
-                                    {product.fields.filter((f: any) => f.type !== 'PHOTO').map((field: any) => (
+                                    {product.fields.map((field: any) => (
                                         <div key={field.id} className="flex justify-between border-t border-zinc-100 dark:border-zinc-800 pt-2">
                                             <span className="text-zinc-500">{field.name}</span>
                                             <span className="font-medium text-right max-w-[60%] truncate" title={field.type === 'STRING' ? field.stringValue || '' : `${field.numberValue} ${field.unit}`}>

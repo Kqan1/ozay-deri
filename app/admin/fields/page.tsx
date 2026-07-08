@@ -126,7 +126,6 @@ export default function FieldsAdminPage() {
                             >
                                 <option value="STRING">Metin (Yazı)</option>
                                 <option value="NUMBER_UNIT">Sayı + Birim</option>
-                                <option value="PHOTO">Fotoğraf</option>
                             </select>
                         </div>
 
@@ -217,7 +216,7 @@ export default function FieldsAdminPage() {
                             {fields.map(f => (
                                 <tr key={f.id} className="border-b last:border-0 hover:bg-muted/50">
                                     <td className="px-6 py-4 font-medium">{f.name}</td>
-                                    <td className="px-6 py-4">{f.type === 'STRING' ? 'Metin' : f.type === 'NUMBER_UNIT' ? 'Sayı+Birim' : 'Fotoğraf'}</td>
+                                    <td className="px-6 py-4">{f.type === 'STRING' ? 'Metin' : 'Sayı+Birim'}</td>
                                     <td className="px-6 py-4">{f.isGlobal ? "Global" : f.category?.name || "Bilinmeyen"}</td>
                                     <td className="px-6 py-4 space-x-2 flex flex-wrap gap-2">
                                         {f.isFilterable && <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded text-xs">Filtrelenebilir</span>}
