@@ -21,7 +21,7 @@ export default function ManageAdminsPage() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, []);
 
   async function loadData(showLoading = true) {
     if (showLoading) setIsLoading(true);

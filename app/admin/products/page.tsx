@@ -46,7 +46,7 @@ export default function ProductsAdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, []);
 
   async function loadData(showLoading = true) {
     if (showLoading) setIsLoading(true);

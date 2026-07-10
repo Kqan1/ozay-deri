@@ -24,7 +24,7 @@ export default function FieldsAdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, []);
 
   async function loadData(showLoading = true) {
     if (showLoading) setIsLoading(true);

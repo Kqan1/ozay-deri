@@ -22,7 +22,7 @@ export default function CategoriesAdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, []);
 
   async function loadData(showLoading = true) {
     if (showLoading) setIsLoading(true);
