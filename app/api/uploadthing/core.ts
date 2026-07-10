@@ -8,11 +8,10 @@ export const ourFileRouter = {
       maxFileSize: "4MB",
       maxFileCount: 50,
     },
-  })
-    .onUploadComplete(async ({ file }) => {
-      console.log("Upload complete, url:", file.url);
-      return { url: file.url };
-    }),
+  }).onUploadComplete(async ({ file }) => {
+    console.log("Upload complete, url:", file.url);
+    return { url: file.url };
+  }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

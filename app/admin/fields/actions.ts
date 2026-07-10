@@ -1,7 +1,7 @@
 "use server";
 
-import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import db from "@/lib/db";
 
 export async function createFieldDefinition(formData: FormData) {
   const id = formData.get("id") as string | null;
@@ -20,21 +20,21 @@ export async function createFieldDefinition(formData: FormData) {
       name,
       type,
       isGlobal,
-      categoryId: isGlobal ? null : (categoryId || null),
+      categoryId: isGlobal ? null : categoryId || null,
       isFilterable,
       isSortable,
-      isSearchable
+      isSearchable,
     };
 
     if (id) {
       await db.fieldDefinition.update({
         where: { id },
-        data
+        data,
       });
     } else {
       await db.fieldDefinition.create({ data });
     }
-    
+
     revalidatePath("/admin/fields");
     return { success: true };
   } catch (e: any) {

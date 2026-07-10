@@ -1,12 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { FieldType } from "@/app/generated/prisma/client";
+import type { FieldType } from "@/app/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth-utils";
 
 import prisma from "@/lib/db";
 
-export async function createCategory(data: { name: string; parentId?: string | null; isHidden?: boolean }) {
+export async function createCategory(data: {
+  name: string;
+  parentId?: string | null;
+  isHidden?: boolean;
+}) {
   await requireAdmin();
   const category = await prisma.category.create({
     data: {
@@ -19,7 +23,10 @@ export async function createCategory(data: { name: string; parentId?: string | n
   return category;
 }
 
-export async function updateCategory(id: string, data: { name: string; parentId?: string | null; isHidden?: boolean }) {
+export async function updateCategory(
+  id: string,
+  data: { name: string; parentId?: string | null; isHidden?: boolean },
+) {
   await requireAdmin();
   const category = await prisma.category.update({
     where: { id },
@@ -36,8 +43,13 @@ export async function updateCategory(id: string, data: { name: string; parentId?
 export async function deleteCategory(id: string, deleteProducts: boolean) {
   await requireAdmin();
   if (deleteProducts) {
-    const productsToDelete = await prisma.product.findMany({ where: { categoryId: id } });
-    const keys = productsToDelete.flatMap(p => p.images).map(url => url.split("/f/")[1]).filter(Boolean);
+    const productsToDelete = await prisma.product.findMany({
+      where: { categoryId: id },
+    });
+    const keys = productsToDelete
+      .flatMap((p) => p.images)
+      .map((url) => url.split("/f/")[1])
+      .filter(Boolean);
     if (keys.length > 0) {
       const { UTApi } = await import("uploadthing/server");
       const utapi = new UTApi();
@@ -113,8 +125,12 @@ export async function updateProduct(id: string, data: CreateProductInput) {
 
   const oldProduct = await prisma.product.findUnique({ where: { id } });
   if (oldProduct) {
-    const removedImages = oldProduct.images.filter(img => !data.images.includes(img));
-    const keys = removedImages.map(url => url.split("/f/")[1]).filter(Boolean);
+    const removedImages = oldProduct.images.filter(
+      (img) => !data.images.includes(img),
+    );
+    const keys = removedImages
+      .map((url) => url.split("/f/")[1])
+      .filter(Boolean);
     if (keys.length > 0) {
       const { UTApi } = await import("uploadthing/server");
       const utapi = new UTApi();
@@ -159,7 +175,9 @@ export async function deleteProduct(id: string) {
 
   const oldProduct = await prisma.product.findUnique({ where: { id } });
   if (oldProduct?.images?.length) {
-    const keys = oldProduct.images.map(url => url.split("/f/")[1]).filter(Boolean);
+    const keys = oldProduct.images
+      .map((url) => url.split("/f/")[1])
+      .filter(Boolean);
     if (keys.length > 0) {
       const { UTApi } = await import("uploadthing/server");
       const utapi = new UTApi();
@@ -198,10 +216,10 @@ export async function getAdminStats() {
   const productsCount = await prisma.product.count();
   const categoriesCount = await prisma.category.count();
   const fieldsCount = await prisma.fieldDefinition.count();
-  
+
   return {
     productsCount,
     categoriesCount,
-    fieldsCount
+    fieldsCount,
   };
 }

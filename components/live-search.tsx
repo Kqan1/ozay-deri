@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { Search, Loader2 } from "lucide-react";
-import { getLiveSearchSuggestions } from "@/app/actions/search-actions";
-import Link from "next/link";
+import { Loader2, Search } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { getLiveSearchSuggestions } from "@/app/actions/search-actions";
 
 export default function LiveSearch() {
   const [query, setQuery] = useState("");
@@ -42,7 +43,10 @@ export default function LiveSearch() {
   // Click outside to close
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -59,17 +63,26 @@ export default function LiveSearch() {
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-sm hidden md:block mx-4">
+    <div
+      ref={wrapperRef}
+      className="relative w-full max-w-sm hidden md:block mx-4"
+    >
       <div className="relative">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-neutral-400">
-          {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+          {isLoading ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Search size={16} />
+          )}
         </div>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => { if (results.length > 0) setIsOpen(true) }}
+          onFocus={() => {
+            if (results.length > 0) setIsOpen(true);
+          }}
           placeholder="Ürün, kategori vb. ara..."
           className="block w-full rounded-full border border-white/20 bg-black/40 py-1.5 pl-10 pr-4 text-sm text-white placeholder-neutral-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 backdrop-blur-sm transition-all"
         />
@@ -87,16 +100,33 @@ export default function LiveSearch() {
                 >
                   <div className="h-10 w-10 shrink-0 rounded-md bg-neutral-800 overflow-hidden relative">
                     {product.thumbnail ? (
-                       <Image src={product.thumbnail} alt={product.name} fill className="object-cover" />
+                      <Image
+                        src={product.thumbnail}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
                     ) : (
-                       <div className="w-full h-full flex items-center justify-center text-[10px] text-neutral-500 text-center leading-tight bg-neutral-800">No Img</div>
+                      <div className="w-full h-full flex items-center justify-center text-[10px] text-neutral-500 text-center leading-tight bg-neutral-800">
+                        No Img
+                      </div>
                     )}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="truncate text-sm font-medium text-white">{product.name}</span>
+                    <span className="truncate text-sm font-medium text-white">
+                      {product.name}
+                    </span>
                     <span className="truncate text-xs text-neutral-400 flex items-center gap-1">
-                      {product.categoryName && <span className="bg-white/10 px-1.5 rounded-sm">{product.categoryName}</span>}
-                      {product.price && <span className="text-emerald-400 font-semibold">{product.price} ₺</span>}
+                      {product.categoryName && (
+                        <span className="bg-white/10 px-1.5 rounded-sm">
+                          {product.categoryName}
+                        </span>
+                      )}
+                      {product.price && (
+                        <span className="text-emerald-400 font-semibold">
+                          {product.price} ₺
+                        </span>
+                      )}
                     </span>
                   </div>
                 </Link>

@@ -1,9 +1,9 @@
 "use server";
 
-import db from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-utils";
+import db from "@/lib/db";
 
 export async function getAdmins() {
   await requireAdmin();
@@ -13,9 +13,9 @@ export async function getAdmins() {
       id: true,
       username: true,
       role: true,
-      createdAt: true
+      createdAt: true,
     },
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
   });
 }
 
@@ -24,7 +24,8 @@ export async function createAdmin(formData: FormData) {
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
 
-  if (!username || !password) return { error: "Kullanıcı adı ve şifre zorunludur." };
+  if (!username || !password)
+    return { error: "Kullanıcı adı ve şifre zorunludur." };
 
   try {
     const existing = await db.user.findUnique({ where: { username } });
@@ -36,8 +37,8 @@ export async function createAdmin(formData: FormData) {
       data: {
         username,
         password: hashedPassword,
-        role: "ADMIN"
-      }
+        role: "ADMIN",
+      },
     });
 
     revalidatePath("/admin/admins");
@@ -47,7 +48,7 @@ export async function createAdmin(formData: FormData) {
   }
 }
 
-export async function deleteAdmin(id: string, currentUserId: string) {
+export async function deleteAdmin(id: string, _currentUserId: string) {
   await requireAdmin();
   try {
     await db.user.delete({ where: { id } });
@@ -67,11 +68,14 @@ export async function updateProfile(formData: FormData) {
 
   try {
     const existing = await db.user.findUnique({ where: { username } });
-    if (existing && existing.id !== id) return { error: "Bu kullanıcı adı başka bir kullanıcı tarafından kullanılıyor." };
+    if (existing && existing.id !== id)
+      return {
+        error: "Bu kullanıcı adı başka bir kullanıcı tarafından kullanılıyor.",
+      };
 
     await db.user.update({
       where: { id },
-      data: { username }
+      data: { username },
     });
 
     revalidatePath("/admin/profile");
@@ -87,7 +91,8 @@ export async function updatePassword(formData: FormData) {
   const currentPassword = formData.get("currentPassword") as string;
   const newPassword = formData.get("newPassword") as string;
 
-  if (!id || !currentPassword || !newPassword) return { error: "Tüm alanlar zorunludur." };
+  if (!id || !currentPassword || !newPassword)
+    return { error: "Tüm alanlar zorunludur." };
 
   try {
     const user = await db.user.findUnique({ where: { id } });
@@ -100,7 +105,7 @@ export async function updatePassword(formData: FormData) {
 
     await db.user.update({
       where: { id },
-      data: { password: hashedPassword }
+      data: { password: hashedPassword },
     });
 
     return { success: true };

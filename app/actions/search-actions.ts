@@ -7,7 +7,7 @@ export async function getLiveSearchSuggestions(query: string) {
 
   // Fuzzy search using pg_trgm similarity
   // We search in Product name, Category name, and searchable ProductFields
-  const results = await db.$queryRaw`
+  const results = (await db.$queryRaw`
     SELECT 
       p.id, 
       p.name, 
@@ -42,9 +42,12 @@ export async function getLiveSearchSuggestions(query: string) {
        )
     ORDER BY "simScore" DESC
     LIMIT 5
-  ` as any[];
+  `) as any[];
 
-  console.log(`[Live Search] Query: "${query}" | Results:`, results.map((r: any) => ({ name: r.name, simScore: r.simScore })));
+  console.log(
+    `[Live Search] Query: "${query}" | Results:`,
+    results.map((r: any) => ({ name: r.name, simScore: r.simScore })),
+  );
 
   return results;
 }
@@ -53,7 +56,7 @@ export async function logEmptySearch(term: string) {
   if (!term) return;
   try {
     await db.searchLog.create({
-      data: { term }
+      data: { term },
     });
   } catch (e) {
     console.error("Failed to log empty search", e);

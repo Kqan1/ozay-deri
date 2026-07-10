@@ -1,38 +1,46 @@
-import db from "@/lib/db";
-import { Prisma } from "@/app/generated/prisma/client";
-import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { logEmptySearch } from "@/app/actions/search-actions";
-import { ChevronRight, FilterX } from "lucide-react";
+import { Prisma } from "@/app/generated/prisma/client";
 import SidebarFilter from "@/components/sidebar-filter";
+import db from "@/lib/db";
 
-export default async function SearchPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const resolvedParams = await searchParams;
   const q = resolvedParams.q as string;
   const page = Number(resolvedParams.page) || 1;
   const categoryParam = resolvedParams.category as string | undefined;
   const categoryIds = categoryParam ? categoryParam.split(",") : [];
-  
+
   if (!q) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
         <h2 className="text-2xl font-semibold mb-2">Arama</h2>
-        <p className="text-neutral-400">Lütfen aramak istediğiniz kelimeyi giriniz.</p>
+        <p className="text-neutral-400">
+          Lütfen aramak istediğiniz kelimeyi giriniz.
+        </p>
       </div>
     );
   }
 
   // 1. Find all filterable fields globally or for the selected category
   const filterableFields = await db.fieldDefinition.findMany({
-    where: { 
+    where: {
       isFilterable: true,
-      ...(categoryIds.length > 0 ? { OR: [{ isGlobal: true }, { categoryId: { in: categoryIds } }] } : {})
-    }
+      ...(categoryIds.length > 0
+        ? { OR: [{ isGlobal: true }, { categoryId: { in: categoryIds } }] }
+        : {}),
+    },
   });
 
   const categories = await db.category.findMany({
     where: { isHidden: false },
-    select: { id: true, name: true, parentId: true }
+    select: { id: true, name: true, parentId: true },
   });
 
   // 2. Extract selected filters from searchParams
@@ -40,7 +48,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   for (const field of filterableFields) {
     const rawVal = resolvedParams[field.name];
     if (rawVal) {
-      activeFilters[field.name] = typeof rawVal === 'string' ? rawVal.split(",") : rawVal;
+      activeFilters[field.name] =
+        typeof rawVal === "string" ? rawVal.split(",") : rawVal;
     }
   }
 
@@ -48,7 +57,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   let filterConditions = Prisma.empty;
   const filterKeys = Object.keys(activeFilters);
   if (filterKeys.length > 0) {
-    const conditions = filterKeys.map(key => {
+    const conditions = filterKeys.map((key) => {
       const values = activeFilters[key];
       return Prisma.sql`EXISTS (
         SELECT 1 FROM "ProductField" pf 
@@ -57,7 +66,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           AND pf."stringValue" = ANY(ARRAY[${Prisma.join(values)}]::text[])
       )`;
     });
-    filterConditions = Prisma.sql`AND ${Prisma.join(conditions, ' AND ')}`;
+    filterConditions = Prisma.sql`AND ${Prisma.join(conditions, " AND ")}`;
   }
 
   if (categoryIds.length > 0) {
@@ -105,11 +114,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     LIMIT 12 OFFSET ${(page - 1) * 12}
   `;
 
-  const results = await db.$queryRaw(query) as any[];
+  const results = (await db.$queryRaw(query)) as any[];
 
   console.log(`\n[Detailed Search] Query: "${q}"`);
   if (filterKeys.length > 0) console.log(`Filters:`, activeFilters);
-  console.log(`Results:`, results.map(r => ({ name: r.name, simScore: r.simScore })));
+  console.log(
+    `Results:`,
+    results.map((r) => ({ name: r.name, simScore: r.simScore })),
+  );
 
   if (results.length === 0 && page === 1 && filterKeys.length === 0) {
     await logEmptySearch(q);
@@ -120,20 +132,22 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     filterableFields.map(async (field) => {
       const distinctValues = await db.productField.findMany({
         where: { name: field.name, stringValue: { not: null } },
-        distinct: ['stringValue'],
-        select: { stringValue: true }
+        distinct: ["stringValue"],
+        select: { stringValue: true },
       });
       return {
         ...field,
-        options: distinctValues.map(v => v.stringValue).filter(Boolean) as string[]
+        options: distinctValues
+          .map((v) => v.stringValue)
+          .filter(Boolean) as string[],
       };
-    })
+    }),
   );
 
   const hasNextPage = results.length === 12;
 
   // Helper to build URL with new or removed filter
-  const buildFilterUrl = (key: string, value?: string) => {
+  const _buildFilterUrl = (key: string, value?: string) => {
     const params = new URLSearchParams();
     params.set("q", q);
     for (const [k, v] of Object.entries(activeFilters)) {
@@ -146,7 +160,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 pt-24">
       <div className="flex items-center text-sm text-neutral-400 mb-8 space-x-2">
-        <Link href="/" className="hover:text-white transition-colors">Ana Sayfa</Link>
+        <Link href="/" className="hover:text-white transition-colors">
+          Ana Sayfa
+        </Link>
         <ChevronRight size={14} />
         <span className="text-white">"{q}" için sonuçlar</span>
       </div>
@@ -154,7 +170,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       <div className="flex flex-col lg:flex-row gap-10">
         {/* Left Sidebar (Filters) */}
         <aside className="w-full lg:w-64 shrink-0">
-          <SidebarFilter filterableFields={filterOptions} categories={categories} />
+          <SidebarFilter
+            filterableFields={filterOptions}
+            categories={categories}
+          />
         </aside>
 
         {/* Main Content (Results) */}
@@ -163,24 +182,46 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             <div className="text-center py-20 bg-white/5 border border-white/10 rounded-2xl">
               <h3 className="text-xl font-medium mb-2">Sonuç Bulunamadı</h3>
               <p className="text-neutral-400 text-sm">
-                "{q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen farklı kelimelerle veya filtreleri temizleyerek tekrar deneyin.
+                "{q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen
+                farklı kelimelerle veya filtreleri temizleyerek tekrar deneyin.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
               {results.map((product) => (
-                <Link key={product.id} href={`/products/${product.id}`} className="group block">
+                <Link
+                  key={product.id}
+                  href={`/products/${product.id}`}
+                  className="group block"
+                >
                   <div className="aspect-[4/5] relative rounded-xl overflow-hidden bg-neutral-900 border border-white/5 group-hover:border-indigo-500/50 transition-colors">
                     {product.thumbnail ? (
-                      <Image src={product.thumbnail} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image
+                        src={product.thumbnail}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-xs text-neutral-600">Görsel Yok</div>
+                      <div className="absolute inset-0 flex items-center justify-center text-xs text-neutral-600">
+                        Görsel Yok
+                      </div>
                     )}
                   </div>
                   <div className="mt-4 space-y-1">
-                    <h3 className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors line-clamp-1">{product.name}</h3>
-                    {product.categoryName && <p className="text-xs text-neutral-500">{product.categoryName}</p>}
-                    {product.price && <p className="text-sm font-semibold text-emerald-400 mt-2">{product.price} ₺</p>}
+                    <h3 className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors line-clamp-1">
+                      {product.name}
+                    </h3>
+                    {product.categoryName && (
+                      <p className="text-xs text-neutral-500">
+                        {product.categoryName}
+                      </p>
+                    )}
+                    {product.price && (
+                      <p className="text-sm font-semibold text-emerald-400 mt-2">
+                        {product.price} ₺
+                      </p>
+                    )}
                   </div>
                 </Link>
               ))}
