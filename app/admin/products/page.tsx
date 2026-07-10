@@ -7,6 +7,7 @@ import {
   Package,
   Pencil,
   Trash2,
+  CornerDownRight,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -22,6 +23,7 @@ import {
   getFieldDefinitions,
   getProducts,
   updateProduct,
+  deleteUploadThingImage,
 } from "../actions";
 import Loading from "./loading";
 
@@ -38,11 +40,24 @@ export default function ProductsAdminPage() {
   const [productCategoryId, setProductCategoryId] = useState("");
   const [productIsHidden, setProductIsHidden] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<string[]>([]);
   const [fields, setFields] = useState<CreateProductInput["fields"]>([]);
   const [expandedProductId, setExpandedProductId] = useState<string | null>(
     null,
   );
+
+  const handleImagesChange = async (updatedImages: string[]) => {
+    const removed = images.filter((img) => !updatedImages.includes(img));
+    for (const img of removed) {
+      if (newImages.includes(img)) {
+        await deleteUploadThingImage(img);
+        setNewImages((prev) => prev.filter((i) => i !== img));
+      }
+    }
+    setImages(updatedImages);
+  };
 
   useEffect(() => {
     loadData();
@@ -97,7 +112,9 @@ export default function ProductsAdminPage() {
     ignoreWarning: boolean = false,
   ) {
     if (e) e.preventDefault();
-    if (!productName || isUploading) return;
+    if (!productName || isUploading || isSubmitting) return;
+
+    setIsSubmitting(true);
 
     const applicableFieldDefs = fieldDefinitions.filter(
       (fd) => fd.isGlobal || fd.categoryId === productCategoryId,
@@ -136,7 +153,10 @@ export default function ProductsAdminPage() {
                 Evet, Eski Alanları Sil ve Kaydet
               </button>
               <button
-                onClick={() => toast.dismiss(t)}
+                onClick={() => {
+                  toast.dismiss(t);
+                  setIsSubmitting(false);
+                }}
                 className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 İptal, Kaydetme
@@ -266,6 +286,8 @@ export default function ProductsAdminPage() {
     setFields([]);
     setProductIsHidden(false);
     setIsUploading(false);
+    setIsSubmitting(false);
+    setNewImages([]);
     if (categories.length > 0) setProductCategoryId(categories[0].id);
   }
 
@@ -397,7 +419,7 @@ export default function ProductsAdminPage() {
               </h3>
               <SortableImageGallery
                 images={images}
-                onImagesChange={setImages}
+                onImagesChange={handleImagesChange}
               />
               {images.length < 50 && (
                 <CustomUploadDropzone
@@ -406,6 +428,7 @@ export default function ProductsAdminPage() {
                     setIsUploading(false);
                     if (urls.length > 0) {
                       setImages((prev) => [...prev, ...urls]);
+                      setNewImages((prev) => [...prev, ...urls]);
                     }
                   }}
                 />
@@ -521,14 +544,16 @@ export default function ProductsAdminPage() {
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                disabled={isUploading}
+                disabled={isUploading || isSubmitting}
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
               >
-                {isUploading
-                  ? "Fotoğraf Yükleniyor..."
-                  : editProductId
-                    ? "Değişiklikleri Kaydet"
-                    : "Ürünü Ekle"}
+                {isSubmitting
+                  ? "Kaydediliyor..."
+                  : isUploading
+                    ? "Fotoğraf Yükleniyor..."
+                    : editProductId
+                      ? "Değişiklikleri Kaydet"
+                      : "Ürünü Ekle"}
               </button>
               {editProductId && (
                 <button
@@ -544,8 +569,8 @@ export default function ProductsAdminPage() {
         </div>
 
         {/* Sağ Taraf: Ürünler Listesi */}
-        <div className="xl:col-span-2 space-y-6">
-          <div className="border rounded-lg overflow-hidden bg-card shadow-sm">
+        <div className="xl:col-span-2 space-y-6 min-w-0">
+          <div className="border rounded-lg overflow-x-auto bg-card shadow-sm">
             <div className="p-4 border-b bg-muted/30 flex justify-between items-center">
               <h3 className="font-semibold">
                 Aktif Ürünler ({categorizedProducts.length})
@@ -569,12 +594,13 @@ export default function ProductsAdminPage() {
                     return (
                       <div key={cat.id} className="mb-4">
                         <div
-                          className="px-4 py-2 bg-muted/20 font-semibold text-sm text-muted-foreground sticky top-0 z-10 border-y"
+                          className="px-4 py-2 bg-muted/20 font-semibold text-sm text-muted-foreground sticky top-0 z-10 border-y flex items-center gap-2"
                           style={{
                             paddingLeft: `calc(1rem + ${(cat._depth || 0) * 1.5}rem)`,
                           }}
                         >
-                          {cat.name} ({catProducts.length} ürün)
+                          {cat._depth > 0 && <CornerDownRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />}
+                          <span>{cat.name} ({catProducts.length} ürün)</span>
                         </div>
                         <div className="divide-y divide-border">
                           {catProducts.map((p) => (
@@ -626,7 +652,7 @@ export default function ProductsAdminPage() {
                                   </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                                <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto shrink-0">
                                   <button
                                     onClick={(e) =>
                                       handleToggleProductVisibility(p, e)
@@ -670,6 +696,14 @@ export default function ProductsAdminPage() {
                                   className="mt-4 pt-4 border-t border-border/50 text-sm cursor-default"
                                   onClick={(e) => e.stopPropagation()}
                                 >
+                                  <div className="mb-4">
+                                    <p className="font-medium text-muted-foreground mb-1">
+                                      Tam Ürün Adı:
+                                    </p>
+                                    <p className="text-foreground font-semibold break-words">
+                                      {p.name}
+                                    </p>
+                                  </div>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                       <p className="font-medium text-muted-foreground mb-2">
@@ -729,7 +763,7 @@ export default function ProductsAdminPage() {
 
           {/* Kategorisiz Ürünler (Admin Uyarı) */}
           {uncategorizedProducts.length > 0 && (
-            <div className="border border-destructive/50 rounded-lg overflow-hidden bg-destructive/5 shadow-sm">
+            <div className="border border-destructive/50 rounded-lg overflow-x-auto bg-destructive/5 shadow-sm min-w-0">
               <div className="p-4 border-b border-destructive/20 bg-destructive/10 flex flex-wrap gap-2 justify-between items-center">
                 <h3 className="font-semibold text-destructive flex items-center gap-2">
                   ⚠️ Kategorisi Silinmiş Ürünler ({uncategorizedProducts.length})
@@ -754,7 +788,7 @@ export default function ProductsAdminPage() {
                         sitede görüntülenemez.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                       <button
                         onClick={() => handleEditProduct(p)}
                         className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 px-3"

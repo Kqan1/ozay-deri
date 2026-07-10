@@ -23,9 +23,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { useAdminMenu } from "@/components/admin-mobile-menu-context";
+
 export default function HeaderAdmin() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const { setIsOpen } = useAdminMenu();
 
   // Dictionary for Turkish translations
   const breadcrumbDictionary: Record<string, string> = {
@@ -53,7 +56,10 @@ export default function HeaderAdmin() {
   return (
     <header className="h-16 border-b bg-card flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-sm">
       <div className="flex items-center gap-4">
-        <button className="md:hidden p-2 -ml-2 rounded-md hover:bg-muted text-muted-foreground transition-colors">
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="md:hidden p-2 -ml-2 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+        >
           <Menu className="w-5 h-5" />
           <span className="sr-only">Menüyü Aç</span>
         </button>

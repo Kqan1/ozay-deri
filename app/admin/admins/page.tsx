@@ -141,60 +141,62 @@ export default function ManageAdminsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-muted text-muted-foreground border-b border-t">
-                <tr>
-                  <th className="px-6 py-4">Kullanıcı Adı</th>
-                  <th className="px-6 py-4">Kayıt Tarihi</th>
-                  <th className="px-6 py-4 text-right">İşlem</th>
-                </tr>
-              </thead>
-              <tbody>
-                {admins.map((admin) => {
-                  const isMe = session?.user && session.user.id === admin.id;
-                  return (
-                    <tr
-                      key={admin.id}
-                      className="border-b last:border-0 hover:bg-muted/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 font-medium flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                          {admin.username?.charAt(0).toUpperCase() || "A"}
-                        </div>
-                        {admin.username}
-                        {isMe && (
-                          <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-[10px] rounded-full uppercase tracking-wide font-bold">
-                            Siz
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {new Date(admin.createdAt).toLocaleDateString("tr-TR")}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleDeleteAdmin(admin.id)}
-                          className="text-destructive hover:bg-destructive/10 p-2 rounded-md transition-colors cursor-pointer inline-flex items-center"
-                          title="Yöneticiyi Sil"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs uppercase bg-muted text-muted-foreground border-b border-t">
+                  <tr>
+                    <th className="px-6 py-4">Kullanıcı Adı</th>
+                    <th className="px-6 py-4">Kayıt Tarihi</th>
+                    <th className="px-6 py-4 text-right">İşlem</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {admins.map((admin) => {
+                    const isMe = session?.user && session.user.id === admin.id;
+                    return (
+                      <tr
+                        key={admin.id}
+                        className="border-b last:border-0 hover:bg-muted/50 transition-colors"
+                      >
+                        <td className="px-6 py-4 font-medium flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {admin.username?.charAt(0).toUpperCase() || "A"}
+                          </div>
+                          {admin.username}
+                          {isMe && (
+                            <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-[10px] rounded-full uppercase tracking-wide font-bold">
+                              Siz
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {new Date(admin.createdAt).toLocaleDateString("tr-TR")}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleDeleteAdmin(admin.id)}
+                            className="text-destructive hover:bg-destructive/10 p-2 rounded-md transition-colors cursor-pointer inline-flex items-center"
+                            title="Yöneticiyi Sil"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {admins.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-8 text-center text-muted-foreground"
+                      >
+                        Kayıtlı yönetici bulunamadı.
                       </td>
                     </tr>
-                  );
-                })}
-                {admins.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-6 py-8 text-center text-muted-foreground"
-                    >
-                      Kayıtlı yönetici bulunamadı.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>

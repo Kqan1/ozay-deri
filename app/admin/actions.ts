@@ -211,6 +211,16 @@ export async function getFieldDefinitions() {
   });
 }
 
+export async function deleteUploadThingImage(url: string) {
+  await requireAdmin();
+  const key = url.split("/f/")[1];
+  if (key) {
+    const { UTApi } = await import("uploadthing/server");
+    const utapi = new UTApi();
+    await utapi.deleteFiles(key);
+  }
+}
+
 export async function getAdminStats() {
   await requireAdmin();
   const productsCount = await prisma.product.count();

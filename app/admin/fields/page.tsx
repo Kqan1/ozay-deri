@@ -12,6 +12,7 @@ export default function FieldsAdminPage() {
   const [fields, setFields] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [editFieldId, setEditFieldId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -41,6 +42,8 @@ export default function FieldsAdminPage() {
 
   async function handleSaveField(e: React.FormEvent) {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     const formData = new FormData();
     if (editFieldId) formData.append("id", editFieldId);
@@ -59,6 +62,7 @@ export default function FieldsAdminPage() {
 
     resetForm();
     await loadData(false);
+    setIsSubmitting(false);
   }
 
   function handleEditField(field: any) {
@@ -208,8 +212,8 @@ export default function FieldsAdminPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" className="w-full cursor-pointer">
-                {editFieldId ? "Güncelle" : "Alanı Oluştur"}
+              <Button type="submit" disabled={isSubmitting} className="w-full cursor-pointer">
+                {isSubmitting ? "Kaydediliyor..." : editFieldId ? "Güncelle" : "Alanı Oluştur"}
               </Button>
               {editFieldId && (
                 <Button
@@ -226,76 +230,78 @@ export default function FieldsAdminPage() {
         </div>
 
         <div className="md:col-span-2 border rounded-lg p-0 overflow-hidden bg-card">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs uppercase bg-muted text-muted-foreground border-b">
-              <tr>
-                <th className="px-6 py-3">Alan Adı</th>
-                <th className="px-6 py-3">Tip</th>
-                <th className="px-6 py-3">Kapsam</th>
-                <th className="px-6 py-3">Özellikler</th>
-                <th className="px-6 py-3">İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fields.map((f) => (
-                <tr
-                  key={f.id}
-                  className="border-b last:border-0 hover:bg-muted/50"
-                >
-                  <td className="px-6 py-4 font-medium">{f.name}</td>
-                  <td className="px-6 py-4">
-                    {f.type === "STRING" ? "Metin" : "Sayı+Birim"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {f.isGlobal ? "Global" : f.category?.name || "Bilinmeyen"}
-                  </td>
-                  <td className="px-6 py-4 space-x-2 flex flex-wrap gap-2">
-                    {f.isFilterable && (
-                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded text-xs">
-                        Filtrelenebilir
-                      </span>
-                    )}
-                    {f.isSortable && (
-                      <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 rounded text-xs">
-                        Sıralanabilir
-                      </span>
-                    )}
-                    {f.isSearchable && (
-                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded text-xs">
-                        Aranabilir
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleEditField(f)}
-                        className="text-primary hover:underline font-medium cursor-pointer"
-                      >
-                        Düzenle
-                      </button>
-                      <button
-                        onClick={() => handleDeleteField(f.id)}
-                        className="text-destructive hover:underline font-medium cursor-pointer"
-                      >
-                        Sil
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {fields.length === 0 && (
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs uppercase bg-muted text-muted-foreground border-b">
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-8 text-center text-muted-foreground"
-                  >
-                    Henüz tanımlanmış bir alan bulunmuyor.
-                  </td>
+                  <th className="px-6 py-3">Alan Adı</th>
+                  <th className="px-6 py-3">Tip</th>
+                  <th className="px-6 py-3">Kapsam</th>
+                  <th className="px-6 py-3">Özellikler</th>
+                  <th className="px-6 py-3">İşlem</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {fields.map((f) => (
+                  <tr
+                    key={f.id}
+                    className="border-b last:border-0 hover:bg-muted/50"
+                  >
+                    <td className="px-6 py-4 font-medium">{f.name}</td>
+                    <td className="px-6 py-4">
+                      {f.type === "STRING" ? "Metin" : "Sayı+Birim"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {f.isGlobal ? "Global" : f.category?.name || "Bilinmeyen"}
+                    </td>
+                    <td className="px-6 py-4 space-x-2 flex flex-wrap gap-2">
+                      {f.isFilterable && (
+                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded text-xs">
+                          Filtrelenebilir
+                        </span>
+                      )}
+                      {f.isSortable && (
+                        <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 rounded text-xs">
+                          Sıralanabilir
+                        </span>
+                      )}
+                      {f.isSearchable && (
+                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded text-xs">
+                          Aranabilir
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleEditField(f)}
+                          className="text-primary hover:underline font-medium cursor-pointer"
+                        >
+                          Düzenle
+                        </button>
+                        <button
+                          onClick={() => handleDeleteField(f.id)}
+                          className="text-destructive hover:underline font-medium cursor-pointer"
+                        >
+                          Sil
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {fields.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-6 py-8 text-center text-muted-foreground"
+                    >
+                      Henüz tanımlanmış bir alan bulunmuyor.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

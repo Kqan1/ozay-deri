@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Folders, Pencil, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Folders, Pencil, Trash2, CornerDownRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,6 +14,7 @@ import Loading from "./loading";
 export default function CategoriesAdminPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState("");
@@ -57,7 +58,8 @@ export default function CategoriesAdminPage() {
 
   async function handleSaveCategory(e: React.FormEvent) {
     e.preventDefault();
-    if (!categoryName) return;
+    if (!categoryName || isSubmitting) return;
+    setIsSubmitting(true);
     if (editCategoryId) {
       await updateCategory(editCategoryId, {
         name: categoryName,
@@ -73,6 +75,7 @@ export default function CategoriesAdminPage() {
     }
     resetForm();
     await loadData(false);
+    setIsSubmitting(false);
   }
 
   function handleEditCategory(cat: any) {
@@ -228,9 +231,10 @@ export default function CategoriesAdminPage() {
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
               >
-                {editCategoryId ? "Güncelle" : "Ekle"}
+                {isSubmitting ? "Kaydediliyor..." : editCategoryId ? "Güncelle" : "Ekle"}
               </button>
               {editCategoryId && (
                 <button
@@ -260,10 +264,11 @@ export default function CategoriesAdminPage() {
                 <div
                   key={c.id}
                   style={{ paddingLeft: `${(c._depth || 0) * 1.5 + 1}rem` }}
-                  className={`flex items-center justify-between p-4 pr-4 py-4 hover:bg-muted/50 transition-colors ${c.isHidden ? "opacity-70 bg-muted/20" : ""}`}
+                  className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 pr-4 py-4 hover:bg-muted/50 transition-colors ${c.isHidden ? "opacity-70 bg-muted/20" : ""}`}
                 >
-                  <div className="flex flex-col gap-1">
-                    <span className="font-medium text-foreground">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <span className="font-medium text-foreground flex items-center gap-2">
+                      {c._depth > 0 && <CornerDownRight className="w-4 h-4 text-muted-foreground/50" />}
                       {c.name}
                     </span>
                     {c.isHidden && (
@@ -272,7 +277,7 @@ export default function CategoriesAdminPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
                     <button
                       onClick={() => handleToggleCategoryVisibility(c)}
                       className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 gap-1.5 w-[90px]"

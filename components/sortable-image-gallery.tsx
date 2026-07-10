@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { type DragEvent, useState } from "react";
 import { ImageWithSpinner } from "./image-with-spinner";
 
@@ -108,6 +108,40 @@ export function SortableImageGallery({
                 >
                   <X className="w-4 h-4" />
                 </button>
+              </div>
+              <div className="flex justify-between mt-auto">
+                {idx > 0 ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newImages = [...images];
+                      const temp = newImages[idx - 1];
+                      newImages[idx - 1] = newImages[idx];
+                      newImages[idx] = temp;
+                      onImagesChange(newImages);
+                    }}
+                    className="bg-background/80 text-foreground p-1.5 rounded-md hover:bg-background transition-colors shadow-sm cursor-pointer backdrop-blur-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                ) : <div />}
+                {idx < images.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newImages = [...images];
+                      const temp = newImages[idx + 1];
+                      newImages[idx + 1] = newImages[idx];
+                      newImages[idx] = temp;
+                      onImagesChange(newImages);
+                    }}
+                    className="bg-background/80 text-foreground p-1.5 rounded-md hover:bg-background transition-colors shadow-sm cursor-pointer backdrop-blur-sm"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                ) : <div />}
               </div>
             </div>
           </div>

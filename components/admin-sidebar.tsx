@@ -13,9 +13,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { useAdminMenu } from "@/components/admin-mobile-menu-context";
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { isOpen, setIsOpen } = useAdminMenu();
 
   const links = [
     { name: "Panel (Dashboard)", href: "/admin", icon: LayoutDashboard },
@@ -26,8 +28,18 @@ export function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 border-r bg-card hidden md:flex flex-col">
-      <div className="h-16 flex items-center px-6 border-b">
+    <>
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity" 
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 border-r bg-card flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="h-16 flex items-center px-6 border-b">
         <Link
           href="/"
           className="font-bold text-lg tracking-tight hover:opacity-80 transition-opacity"
@@ -49,6 +61,7 @@ export function AdminSidebar() {
             <Link
               key={link.href}
               href={link.href}
+              onClick={() => setIsOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
                 isActive
@@ -72,13 +85,17 @@ export function AdminSidebar() {
           Siteye Dön
         </Link>
         <button
-          onClick={() => signOut({ callbackUrl: "/" })}
+          onClick={() => {
+            setIsOpen(false);
+            signOut({ callbackUrl: "/" });
+          }}
           className="flex w-full items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           Çıkış Yap
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

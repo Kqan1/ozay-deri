@@ -148,7 +148,7 @@ export default function AdminDashboardPage() {
               Veritabanınızdaki temel nesnelerin oransal dağılım grafiği
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex items-end gap-6 sm:gap-12 justify-center pb-4 relative">
+          <CardContent className="flex-1 flex items-end gap-3 sm:gap-12 justify-center pb-4 px-4 sm:px-6 relative overflow-x-auto">
             {/* Background lines */}
             <div className="absolute inset-0 flex flex-col justify-between pt-4 pb-12 px-6 opacity-10 pointer-events-none">
               <div className="border-t w-full border-dashed"></div>
@@ -158,13 +158,13 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Bars */}
-            <div className="w-full max-w-[100px] flex flex-col items-center gap-3 relative z-10 h-full justify-end">
+            <div className="w-[50px] sm:w-full sm:max-w-[80px] shrink-0 flex flex-col items-center gap-2 sm:gap-3 relative z-10 h-full justify-end">
               <div className="w-full bg-muted rounded-t-md relative flex items-end group h-full">
                 <div
                   className="w-full bg-blue-500 rounded-t-md transition-all duration-1000 ease-out"
                   style={{ height: prodHeight }}
                 ></div>
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-md opacity-100 transition-opacity whitespace-nowrap">
                   {stats.productsCount}
                 </div>
               </div>
@@ -173,13 +173,13 @@ export default function AdminDashboardPage() {
               </span>
             </div>
 
-            <div className="w-full max-w-[100px] flex flex-col items-center gap-3 relative z-10 h-full justify-end">
+            <div className="w-[50px] sm:w-full sm:max-w-[80px] shrink-0 flex flex-col items-center gap-2 sm:gap-3 relative z-10 h-full justify-end">
               <div className="w-full bg-muted rounded-t-md relative flex items-end group h-full">
                 <div
                   className="w-full bg-green-500 rounded-t-md transition-all duration-1000 ease-out delay-150"
                   style={{ height: catHeight }}
                 ></div>
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-md opacity-100 transition-opacity whitespace-nowrap">
                   {stats.categoriesCount}
                 </div>
               </div>
@@ -188,13 +188,13 @@ export default function AdminDashboardPage() {
               </span>
             </div>
 
-            <div className="w-full max-w-[100px] flex flex-col items-center gap-3 relative z-10 h-full justify-end">
+            <div className="w-[50px] sm:w-full sm:max-w-[80px] shrink-0 flex flex-col items-center gap-2 sm:gap-3 relative z-10 h-full justify-end">
               <div className="w-full bg-muted rounded-t-md relative flex items-end group h-full">
                 <div
                   className="w-full bg-purple-500 rounded-t-md transition-all duration-1000 ease-out delay-300"
                   style={{ height: fieldsHeight }}
                 ></div>
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-md opacity-100 transition-opacity whitespace-nowrap">
                   {stats.fieldsCount}
                 </div>
               </div>

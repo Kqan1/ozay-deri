@@ -28,7 +28,7 @@ export default function SidebarFilter({
     isChecked: boolean,
   ) => {
     const params = new URLSearchParams(searchParams.toString());
-    let currentValues = params.get(key) ? params.get(key)?.split(",") : [];
+    let currentValues = params.get(key)?.split(",") || [];
 
     if (isChecked) {
       if (!currentValues.includes(value)) currentValues.push(value);
@@ -142,9 +142,7 @@ export default function SidebarFilter({
       {filterableFields.map((field) => {
         if (field.options.length === 0) return null;
 
-        const activeValues = searchParams.get(field.name)
-          ? searchParams.get(field.name)?.split(",")
-          : [];
+        const activeValues = searchParams.get(field.name)?.split(",") || [];
 
         return (
           <div key={field.id} className="space-y-4">
