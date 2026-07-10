@@ -89,7 +89,7 @@ export default function HeaderAdmin() {
                 <User className="w-4 h-4" />
               </div>
               <span className="hidden sm:inline-block mr-1">
-                {(session?.user as any)?.username || "Yönetici"}
+                {session?.user?.username || "Yönetici"}
               </span>
             </button>
           </DropdownMenuTrigger>

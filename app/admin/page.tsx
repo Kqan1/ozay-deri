@@ -32,6 +32,8 @@ export default function AdminDashboardPage() {
     "loading" | "active" | "error"
   >("loading");
 
+  console.log(session?.user);
+
   useEffect(() => {
     getAdminStats()
       .then((data) => {
@@ -68,7 +70,7 @@ export default function AdminDashboardPage() {
           <p className="text-muted-foreground mt-1">
             Hoş geldiniz,{" "}
             <span className="font-semibold text-foreground">
-              {session?.user?.name || "Yönetici"}
+              {session?.user?.username || "Yönetici"}
             </span>
             . Sisteminizin güncel durumu aşağıdadır.
           </p>

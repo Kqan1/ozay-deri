@@ -19,7 +19,7 @@ export default function HeaderUser() {
   }, [session, router]);
 
   const username = session?.user
-    ? (session.user as any).username || "Kullanıcı"
+    ? session.user.username || "Kullanıcı"
     : "";
   const initial = username ? username.charAt(0).toUpperCase() : "U";
 
