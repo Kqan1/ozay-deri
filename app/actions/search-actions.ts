@@ -3,11 +3,11 @@
 import db from "@/lib/db";
 
 export async function getLiveSearchSuggestions(query: string) {
-  if (!query || query.length < 2) return [];
+    if (!query || query.length < 2) return [];
 
-  // Fuzzy search using pg_trgm similarity
-  // We search in Product name, Category name, and searchable ProductFields
-  const results = (await db.$queryRaw`
+    // Fuzzy search using pg_trgm similarity
+    // We search in Product name, Category name, and searchable ProductFields
+    const results = (await db.$queryRaw`
     SELECT 
       p.id, 
       p.name, 
@@ -44,21 +44,21 @@ export async function getLiveSearchSuggestions(query: string) {
     LIMIT 5
   `) as any[];
 
-  console.log(
-    `[Live Search] Query: "${query}" | Results:`,
-    results.map((r: any) => ({ name: r.name, simScore: r.simScore })),
-  );
+    console.log(
+        `[Live Search] Query: "${query}" | Results:`,
+        results.map((r: any) => ({ name: r.name, simScore: r.simScore })),
+    );
 
-  return results;
+    return results;
 }
 
 export async function logEmptySearch(term: string) {
-  if (!term) return;
-  try {
-    await db.searchLog.create({
-      data: { term },
-    });
-  } catch (e) {
-    console.error("Failed to log empty search", e);
-  }
+    if (!term) return;
+    try {
+        await db.searchLog.create({
+            data: { term },
+        });
+    } catch (e) {
+        console.error("Failed to log empty search", e);
+    }
 }

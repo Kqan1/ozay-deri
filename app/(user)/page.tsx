@@ -1,186 +1,190 @@
+import { ArrowRight, ShoppingBag } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/ui/carousel";
 import db from "@/lib/db";
 
-interface CategoryTree {
-  id: string;
-  name: string;
-  parentId: string | null;
-  products: any[];
-  children: CategoryTree[];
-}
-
-function buildCategoryTree(categories: any[]): CategoryTree[] {
-  const tree: CategoryTree[] = [];
-  const map: Record<string, CategoryTree> = {};
-
-  categories.forEach((c) => {
-    map[c.id] = { ...c, children: [] };
-  });
-
-  categories.forEach((c) => {
-    if (c.parentId && map[c.parentId]) {
-      map[c.parentId].children.push(map[c.id]);
-    } else {
-      tree.push(map[c.id]);
-    }
-  });
-
-  return tree;
-}
-
-function CategoryNode({
-  node,
-  depth = 0,
-}: {
-  node: CategoryTree;
-  depth?: number;
-}) {
-  return (
-    <section
-      className={`space-y-6 ${depth > 0 ? "mt-8 border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 sm:pl-6" : ""}`}
-    >
-      <h2
-        className={`${depth === 0 ? "text-2xl" : depth === 1 ? "text-xl" : "text-lg"} font-bold border-b pb-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-between`}
-      >
-        <span className="flex items-center gap-2">
-          {depth > 0 && <span className="text-zinc-400">↳</span>}
-          {node.name}
-        </span>
-        <span className="text-sm font-normal text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
-          {node.products.length} Ürün
-        </span>
-      </h2>
-
-      {node.products.length === 0 ? (
-        <p className="text-zinc-500 italic text-sm">
-          Bu kategoride henüz ürün bulunmuyor.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {node.products.map((product) => {
-            return (
-              <div
-                key={product.id}
-                className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 bg-white dark:bg-zinc-900 shadow-sm flex flex-col gap-4 hover:shadow-md transition-shadow"
-              >
-                {product.images && product.images.length > 0 ? (
-                  <div className="aspect-[4/3] bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-[4/3] bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400 text-sm">
-                    Görsel Yok
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="font-semibold text-lg line-clamp-1">
-                    {product.name}
-                  </h3>
-                </div>
-
-                <div className="space-y-2 mt-auto text-sm">
-                  {product.fields.map((field: any) => (
-                    <div
-                      key={field.id}
-                      className="flex justify-between border-t border-zinc-100 dark:border-zinc-800 pt-2"
-                    >
-                      <span className="text-zinc-500">{field.name}</span>
-                      <span
-                        className="font-medium text-right max-w-[60%] truncate"
-                        title={
-                          field.type === "STRING"
-                            ? field.stringValue || ""
-                            : `${field.numberValue} ${field.unit}`
-                        }
-                      >
-                        {field.type === "STRING"
-                          ? field.stringValue
-                          : `${field.numberValue} ${field.unit}`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {node.children.length > 0 && (
-        <div className="space-y-8 mt-8">
-          {node.children.map((child) => (
-            <CategoryNode key={child.id} node={child} depth={depth + 1} />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
 export default async function Home() {
-  const categories = await db.category.findMany({
-    where: {
-      isHidden: false,
-    },
-    include: {
-      products: {
+    // 1. Fetch Top-Level Categories (parentId is null)
+    const topCategories = await db.category.findMany({
         where: {
-          isHidden: false,
+            isHidden: false,
+            parentId: null,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+        take: 4, // limit to 4 to show nicely as cards
+    });
+
+    // 2. Fetch Newest Products
+    const newProducts = await db.product.findMany({
+        where: {
+            isHidden: false,
         },
         include: {
-          fields: true,
+            fields: {
+                where: {
+                    name: "Thumbnail",
+                },
+            },
+            category: true,
         },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+        orderBy: {
+            createdAt: "desc",
+        },
+        take: 8,
+    });
 
-  const categoryTree = buildCategoryTree(categories);
+    // Mock slides for the carousel since we don't have banner data in DB
+    const slides = [
+        {
+            title: "Özay Deri'ye Hoş Geldiniz",
+            description: "En kaliteli deri ürünleri, çantalar ve aksesuarlar ile tarzınızı yansıtın. Yeni sezon koleksiyonunu hemen keşfedin.",
+            link: "/search?q=",
+            cta: "Alışverişe Başla"
+        },
+        {
+            title: "Yeni Sezon Çantalar",
+            description: "Şıklığı ve zarafeti bir araya getiren yeni sezon kadın çantalarını keşfedin.",
+            link: "/search?q=çanta",
+            cta: "Çantaları İncele"
+        },
+        {
+            title: "Hakiki Deri Cüzdanlar",
+            description: "Uzun ömürlü kullanım ve prestijli görünüm arayanlar için özel tasarım deri cüzdanlar.",
+            link: "/search?q=cüzdan",
+            cta: "Cüzdanları İncele"
+        }
+    ];
 
-  return (
-    <div className="flex flex-col items-center min-h-screen p-8 bg-zinc-50 dark:bg-zinc-950">
-      <main className="flex flex-col items-center gap-8 max-w-5xl w-full">
-        <div className="space-y-4 text-center w-full mb-8">
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Özay Deri - Ürün Vitrini
-          </h1>
-          <p className="text-lg text-zinc-600 dark:text-zinc-400">
-            Sistemde bulunan tüm kategori ve ürünlerin listesi
-          </p>
+    return (
+        <div className="flex flex-col gap-16 pb-16">
+            {/* Hero Section with Carousel */}
+            <section className="relative w-full">
+                <Carousel
+                    opts={{
+                        align: "start",
+                        loop: true,
+                    }}
+                    className="w-full"
+                >
+                    <CarouselContent>
+                        {slides.map((slide, index) => (
+                            <CarouselItem key={index}>
+                                <div className="relative w-full rounded-2xl overflow-hidden bg-muted border h-[400px] flex items-center justify-center text-center px-4">
+                                    <div className="relative z-10 space-y-6 max-w-2xl">
+                                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground">
+                                            {slide.title}
+                                        </h1>
+                                        <p className="text-lg text-muted-foreground">
+                                            {slide.description}
+                                        </p>
+                                        <div className="flex justify-center pt-4">
+                                            <Button size="lg" className="font-semibold" asChild>
+                                                <Link href={slide.link}>
+                                                    <ShoppingBag className="mr-2 h-5 w-5" />
+                                                    {slide.cta}
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <div className="hidden sm:block">
+                        <CarouselPrevious className="left-4" />
+                        <CarouselNext className="right-4" />
+                    </div>
+                </Carousel>
+            </section>
+
+            {/* Top Categories */}
+            {topCategories.length > 0 && (
+                <section className="space-y-8">
+                    <div className="flex items-center justify-between border-b pb-4">
+                        <h2 className="text-2xl font-bold tracking-tight">Kategoriler</h2>
+                        <Link
+                            href="/search?q="
+                            className="text-sm font-medium text-primary hover:underline flex items-center"
+                        >
+                            Tümünü Gör <ArrowRight className="ml-1 h-4 w-4" />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        {topCategories.map((category) => (
+                            <Link key={category.id} href={`/categories/${category.id}`} className="group block">
+                                <div className="h-48 w-full bg-card border rounded-xl flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 transition-colors shadow-sm hover:shadow-md">
+                                    <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                                        {category.name}
+                                    </h3>
+                                    <span className="text-sm text-muted-foreground mt-2 group-hover:underline">
+                                        İncele
+                                    </span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* New Arrivals */}
+            <section className="space-y-8">
+                <div className="flex items-center justify-between border-b pb-4">
+                    <h2 className="text-2xl font-bold tracking-tight">En Yeni Ürünler</h2>
+                </div>
+
+                {newProducts.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground bg-muted/50 rounded-xl border">
+                        Henüz ürün eklenmemiş.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {newProducts.map((product) => {
+                            const thumbnail = product.fields[0]?.stringValue;
+
+                            return (
+                                <Link key={product.id} href={`/products/${product.id}`} className="group block">
+                                    <div className="aspect-[4/5] relative rounded-xl overflow-hidden bg-card border group-hover:border-primary/50 transition-colors">
+                                        {thumbnail ? (
+                                            <Image
+                                                src={thumbnail}
+                                                alt={product.name}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+                                                Görsel Yok
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="mt-4 space-y-1">
+                                        <h3 className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">
+                                            {product.name}
+                                        </h3>
+                                        {product.category?.name && (
+                                            <p className="text-xs text-muted-foreground">{product.category.name}</p>
+                                        )}
+                                        {product.price && (
+                                            <p className="text-sm font-semibold text-primary mt-2">{product.price} ₺</p>
+                                        )}
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
+            </section>
         </div>
-
-        <div className="w-full space-y-16">
-          {categoryTree.length === 0 ? (
-            <div className="text-center p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
-              <p className="text-zinc-500 mb-4">
-                Henüz hiç kategori veya ürün eklenmemiş.
-              </p>
-              <Button asChild>
-                <Link href="/admin">Ürün Eklemeye Başla</Link>
-              </Button>
-            </div>
-          ) : (
-            categoryTree.map((node) => (
-              <CategoryNode key={node.id} node={node} />
-            ))
-          )}
-        </div>
-
-        <div className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800 w-full flex justify-center">
-          <Button asChild variant="outline">
-            <Link href="/admin">Admin Paneline Dön</Link>
-          </Button>
-        </div>
-      </main>
-    </div>
-  );
+    );
 }
