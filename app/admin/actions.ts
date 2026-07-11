@@ -6,27 +6,41 @@ import { requireAdmin } from "@/lib/auth-utils";
 
 import prisma from "@/lib/db";
 
-export async function createCategory(data: { name: string; parentId?: string | null; isHidden?: boolean }) {
+export async function createCategory(data: { name: string; parentId?: string | null; isHidden?: boolean; images?: string[] }) {
     await requireAdmin();
     const category = await prisma.category.create({
         data: {
             name: data.name,
             parentId: data.parentId || null,
             isHidden: data.isHidden || false,
+            images: data.images || [],
         },
     });
     revalidatePath("/");
     return category;
 }
 
-export async function updateCategory(id: string, data: { name: string; parentId?: string | null; isHidden?: boolean }) {
+export async function updateCategory(id: string, data: { name: string; parentId?: string | null; isHidden?: boolean; images?: string[] }) {
     await requireAdmin();
+
+    const oldCategory = await prisma.category.findUnique({ where: { id } });
+    if (oldCategory && data.images) {
+        const removedImages = oldCategory.images.filter((img) => !data.images!.includes(img));
+        const keys = removedImages.map((url) => url.split("/f/")[1]).filter(Boolean);
+        if (keys.length > 0) {
+            const { UTApi } = await import("uploadthing/server");
+            const utapi = new UTApi();
+            await utapi.deleteFiles(keys);
+        }
+    }
+
     const category = await prisma.category.update({
         where: { id },
         data: {
             name: data.name,
             parentId: data.parentId || null,
             isHidden: data.isHidden,
+            ...(data.images ? { images: data.images } : {}),
         },
     });
     revalidatePath("/");
@@ -52,6 +66,17 @@ export async function deleteCategory(id: string, deleteProducts: boolean) {
             where: { categoryId: id },
         });
     }
+
+    const oldCategory = await prisma.category.findUnique({ where: { id } });
+    if (oldCategory && oldCategory.images.length > 0) {
+        const keys = oldCategory.images.map((url) => url.split("/f/")[1]).filter(Boolean);
+        if (keys.length > 0) {
+            const { UTApi } = await import("uploadthing/server");
+            const utapi = new UTApi();
+            await utapi.deleteFiles(keys);
+        }
+    }
+
     // Kategori silindiğinde ürünler onDelete: SetNull sayesinde boşa (null) düşer veya cascade ile silinir (zaten sildik).
     const category = await prisma.category.delete({
         where: { id },
@@ -219,4 +244,90 @@ export async function getAdminStats() {
         categoriesCount,
         fieldsCount,
     };
+}
+
+// --- Carousel Actions ---
+
+export type CreateCarouselSlideInput = {
+    image: string;
+    title: string;
+    titleColor?: string | null;
+    titleSize?: string | null;
+    titleWeight?: string | null;
+    description?: string | null;
+    descColor?: string | null;
+    descSize?: string | null;
+    descWeight?: string | null;
+    buttons?: any; // JSON array of buttons
+    isActive?: boolean;
+    order?: number;
+};
+
+export async function createCarouselSlide(data: CreateCarouselSlideInput) {
+    await requireAdmin();
+    const count = await prisma.carouselSlide.count();
+    const slide = await prisma.carouselSlide.create({
+        data: {
+            ...data,
+            order: data.order ?? count,
+        },
+    });
+    revalidatePath("/");
+    return slide;
+}
+
+export async function updateCarouselSlide(id: string, data: CreateCarouselSlideInput) {
+    await requireAdmin();
+    const oldSlide = await prisma.carouselSlide.findUnique({ where: { id } });
+    if (oldSlide && oldSlide.image !== data.image) {
+        const key = oldSlide.image.split("/f/")[1];
+        if (key) {
+            const { UTApi } = await import("uploadthing/server");
+            const utapi = new UTApi();
+            await utapi.deleteFiles(key);
+        }
+    }
+    const slide = await prisma.carouselSlide.update({
+        where: { id },
+        data,
+    });
+    revalidatePath("/");
+    return slide;
+}
+
+export async function deleteCarouselSlide(id: string) {
+    await requireAdmin();
+    const oldSlide = await prisma.carouselSlide.findUnique({ where: { id } });
+    if (oldSlide?.image) {
+        const key = oldSlide.image.split("/f/")[1];
+        if (key) {
+            const { UTApi } = await import("uploadthing/server");
+            const utapi = new UTApi();
+            await utapi.deleteFiles(key);
+        }
+    }
+    const slide = await prisma.carouselSlide.delete({
+        where: { id },
+    });
+    revalidatePath("/");
+    return slide;
+}
+
+export async function getCarouselSlides() {
+    await requireAdmin();
+    return prisma.carouselSlide.findMany({
+        orderBy: { order: "asc" },
+    });
+}
+
+export async function updateCarouselSlideOrder(updates: { id: string; order: number }[]) {
+    await requireAdmin();
+    for (const update of updates) {
+        await prisma.carouselSlide.update({
+            where: { id: update.id },
+            data: { order: update.order },
+        });
+    }
+    revalidatePath("/");
+    return true;
 }

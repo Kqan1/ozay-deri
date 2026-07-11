@@ -36,34 +36,20 @@ export default async function Home() {
         take: 8,
     });
 
-    // Mock slides for the carousel since we don't have banner data in DB
-    const slides = [
-        {
-            title: "Özay Deri'ye Hoş Geldiniz",
-            description: "En kaliteli deri ürünleri, çantalar ve aksesuarlar ile tarzınızı yansıtın. Yeni sezon koleksiyonunu hemen keşfedin.",
-            link: "/search?q=",
-            cta: "Alışverişe Başla"
-        },
-        {
-            title: "Yeni Sezon Çantalar",
-            description: "Şıklığı ve zarafeti bir araya getiren yeni sezon kadın çantalarını keşfedin.",
-            link: "/search?q=çanta",
-            cta: "Çantaları İncele"
-        },
-        {
-            title: "Hakiki Deri Cüzdanlar",
-            description: "Uzun ömürlü kullanım ve prestijli görünüm arayanlar için özel tasarım deri cüzdanlar.",
-            link: "/search?q=cüzdan",
-            cta: "Cüzdanları İncele"
-        }
-    ];
+    // Fetch Carousel Slides
+    const slides = await db.carouselSlide.findMany({
+        where: { isActive: true },
+        orderBy: { order: "asc" }
+    });
 
     return (
         <div className="flex flex-col gap-16 pb-16">
             {/* Hero Section with Carousel */}
-            <section className="relative w-full">
-                <HeroCarousel slides={slides} />
-            </section>
+            {slides.length > 0 && (
+                <section className="relative w-full">
+                    <HeroCarousel slides={slides} />
+                </section>
+            )}
 
             {/* Top Categories */}
             {topCategories.length > 0 && (
@@ -81,13 +67,26 @@ export default async function Home() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                         {topCategories.map((category) => (
                             <Link key={category.id} href={`/categories/${category.id}`} className="group block">
-                                <div className="h-48 w-full bg-card border rounded-xl flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 transition-colors shadow-sm hover:shadow-md">
-                                    <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                                        {category.name}
-                                    </h3>
-                                    <span className="text-sm text-muted-foreground mt-2 group-hover:underline">
-                                        İncele
-                                    </span>
+                                <div className="relative h-48 w-full bg-card border rounded-xl overflow-hidden flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 transition-colors shadow-sm hover:shadow-md group">
+                                    {category.images && category.images.length > 0 && (
+                                        <>
+                                            <Image 
+                                                src={category.images[0]} 
+                                                alt={category.name} 
+                                                fill 
+                                                className="object-cover z-0 group-hover:scale-105 transition-transform duration-500" 
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 z-0 group-hover:bg-black/50 transition-colors"></div>
+                                        </>
+                                    )}
+                                    <div className="relative z-10 flex flex-col items-center">
+                                        <h3 className={`text-xl font-bold transition-colors ${category.images && category.images.length > 0 ? "text-white" : "text-foreground group-hover:text-primary"}`}>
+                                            {category.name}
+                                        </h3>
+                                        <span className={`text-sm mt-2 group-hover:underline ${category.images && category.images.length > 0 ? "text-gray-200" : "text-muted-foreground"}`}>
+                                            İncele
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
                         ))}

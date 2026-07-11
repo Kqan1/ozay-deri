@@ -1,9 +1,12 @@
 "use client";
 
-import { CornerDownRight, Eye, EyeOff, Folders, Pencil, Trash2 } from "lucide-react";
+import { CornerDownRight, Eye, EyeOff, Folders, Image as ImageIcon, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { createCategory, deleteCategory, getCategories, updateCategory } from "../actions";
+import { CustomUploadDropzone } from "@/components/ui/custom-upload";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
+import { SortableImageGallery } from "@/components/ui/sortable-image-gallery";
+import { createCategory, deleteCategory, getCategories, updateCategory, deleteUploadThingImage } from "../actions";
 import Loading from "./loading";
 
 export default function CategoriesAdminPage() {
@@ -15,6 +18,21 @@ export default function CategoriesAdminPage() {
     const [categoryName, setCategoryName] = useState("");
     const [parentCategoryId, setParentCategoryId] = useState("");
     const [categoryIsHidden, setCategoryIsHidden] = useState(false);
+    
+    const [images, setImages] = useState<string[]>([]);
+    const [newImages, setNewImages] = useState<string[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleImagesChange = async (updatedImages: string[]) => {
+        const removed = images.filter((img) => !updatedImages.includes(img));
+        for (const img of removed) {
+            if (newImages.includes(img)) {
+                await deleteUploadThingImage(img);
+                setNewImages((prev) => prev.filter((i) => i !== img));
+            }
+        }
+        setImages(updatedImages);
+    };
 
     useEffect(() => {
         loadData();
@@ -49,19 +67,21 @@ export default function CategoriesAdminPage() {
 
     async function handleSaveCategory(e: React.FormEvent) {
         e.preventDefault();
-        if (!categoryName || isSubmitting) return;
+        if (!categoryName || isSubmitting || isUploading) return;
         setIsSubmitting(true);
         if (editCategoryId) {
             await updateCategory(editCategoryId, {
                 name: categoryName,
                 parentId: parentCategoryId || null,
                 isHidden: categoryIsHidden,
+                images: images,
             });
         } else {
             await createCategory({
                 name: categoryName,
                 parentId: parentCategoryId || null,
                 isHidden: categoryIsHidden,
+                images: images,
             });
         }
         resetForm();
@@ -74,6 +94,7 @@ export default function CategoriesAdminPage() {
         setCategoryName(cat.name);
         setParentCategoryId(cat.parentId || "");
         setCategoryIsHidden(cat.isHidden || false);
+        setImages(cat.images || []);
     }
 
     async function handleDeleteCategory(id: string) {
@@ -134,6 +155,9 @@ export default function CategoriesAdminPage() {
         setCategoryName("");
         setParentCategoryId("");
         setCategoryIsHidden(false);
+        setImages([]);
+        setNewImages([]);
+        setIsUploading(false);
     }
 
     function buildCategoryPath(category: any): string {
@@ -209,13 +233,33 @@ export default function CategoriesAdminPage() {
                             </label>
                         </div>
 
+                        {/* Fotoğraf Galerisi */}
+                        <div className="space-y-4 pt-4 border-t">
+                            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4" /> Kategori Görseli
+                            </h3>
+                            <SortableImageGallery images={images} onImagesChange={handleImagesChange} />
+                            {images.length < 50 && (
+                                <CustomUploadDropzone
+                                    onUploadBegin={() => setIsUploading(true)}
+                                    onUploadComplete={(urls) => {
+                                        setIsUploading(false);
+                                        if (urls.length > 0) {
+                                            setImages((prev) => [...prev, ...urls]);
+                                            setNewImages((prev) => [...prev, ...urls]);
+                                        }
+                                    }}
+                                />
+                            )}
+                        </div>
+
                         <div className="flex gap-3 pt-2">
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isUploading}
                                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
                             >
-                                {isSubmitting ? "Kaydediliyor..." : editCategoryId ? "Güncelle" : "Ekle"}
+                                {isSubmitting ? "Kaydediliyor..." : isUploading ? "Fotoğraf Yükleniyor..." : editCategoryId ? "Güncelle" : "Ekle"}
                             </button>
                             {editCategoryId && (
                                 <button
@@ -249,6 +293,11 @@ export default function CategoriesAdminPage() {
                                         <span className="font-medium text-foreground flex items-center gap-2">
                                             {c._depth > 0 && (
                                                 <CornerDownRight className="w-4 h-4 text-muted-foreground/50" />
+                                            )}
+                                            {c.images && c.images.length > 0 && (
+                                                <div className="w-8 h-8 rounded shrink-0 overflow-hidden border bg-muted">
+                                                    <ImageWithSpinner src={c.images[0]} alt={c.name} className="w-full h-full object-cover" />
+                                                </div>
                                             )}
                                             {c.name}
                                         </span>

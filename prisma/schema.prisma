@@ -34,11 +34,34 @@ model Category {
   parentId      String?
   parent        Category?  @relation("SubCategories", fields: [parentId], references: [id], onDelete: SetNull)
   subcategories Category[] @relation("SubCategories")
+  images        String[]
 
   products          Product[]
   fieldDefinitions  FieldDefinition[]
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
+}
+
+model CarouselSlide {
+  id              String   @id @default(cuid())
+  image           String
+  
+  title           String
+  titleColor      String?
+  titleSize       String?
+  titleWeight     String?
+
+  description     String?
+  descColor       String?
+  descSize        String?
+  descWeight      String?
+
+  buttons         Json     @default("[]")
+  
+  order           Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Product {
