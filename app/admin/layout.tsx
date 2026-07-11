@@ -1,9 +1,9 @@
 import "./../globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { AdminMenuProvider } from "@/components/admin-mobile-menu-context";
-import { AdminSidebar } from "@/components/admin-sidebar";
-import HeaderAdmin from "@/components/header-admin";
+import { AdminMenuProvider } from "@/components/admin/layout/admin-mobile-menu-context";
+import { AdminSidebar } from "@/components/admin/layout/admin-sidebar";
+import HeaderAdmin from "@/components/admin/layout/header-admin";
 
 import Providers from "@/components/providers/providers";
 import { siteConfig } from "@/lib/config";

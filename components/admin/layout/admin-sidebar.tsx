@@ -4,7 +4,7 @@ import { Folders, Globe, LayoutDashboard, LogOut, Package, Settings2, Shield } f
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useAdminMenu } from "@/components/admin-mobile-menu-context";
+import { useAdminMenu } from "@/components/admin/layout/admin-mobile-menu-context";
 import { cn } from "@/lib/utils";
 
 export function AdminSidebar() {

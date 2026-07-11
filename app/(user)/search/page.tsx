@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { logEmptySearch } from "@/app/actions/search-actions";
 import { Prisma } from "@/app/generated/prisma/client";
-import SidebarFilter from "@/components/sidebar-filter";
+import SidebarFilter from "@/components/shop/sidebar-filter";
 import db from "@/lib/db";
 
 export default async function SearchPage({

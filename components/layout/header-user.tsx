@@ -15,9 +15,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import LiveSearch from "./live-search";
+import LiveSearch from "@/components/ui/live-search";
 
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function HeaderUser() {
     const { data: session, status } = useSession();

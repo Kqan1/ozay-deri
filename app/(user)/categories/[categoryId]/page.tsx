@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import SidebarFilter from "@/components/sidebar-filter";
+import SidebarFilter from "@/components/shop/sidebar-filter";
 import db from "@/lib/db";
 
 export default async function CategoryPage({

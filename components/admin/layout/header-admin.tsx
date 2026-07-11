@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import React from "react";
-import { useAdminMenu } from "@/components/admin-mobile-menu-context";
+import { useAdminMenu } from "@/components/admin/layout/admin-mobile-menu-context";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -24,7 +24,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function HeaderAdmin() {
     const { data: session } = useSession();

@@ -1,8 +1,8 @@
 import "./../globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Footer from "@/components/footer";
-import Header from "@/components/header-user";
+import Footer from "@/components/layout/footer";
+import Header from "@/components/layout/header-user";
 
 import Providers from "@/components/providers/providers";
 import { siteConfig } from "@/lib/config";

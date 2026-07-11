@@ -4,9 +4,9 @@ import { CornerDownRight, Eye, EyeOff, Image as ImageIcon, Package, Pencil, Tras
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CustomUploadDropzone } from "@/components/custom-upload";
-import { ImageWithSpinner } from "@/components/image-with-spinner";
-import { SortableImageGallery } from "@/components/sortable-image-gallery";
+import { CustomUploadDropzone } from "@/components/ui/custom-upload";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
+import { SortableImageGallery } from "@/components/ui/sortable-image-gallery";
 import {
     type CreateProductInput,
     createProduct,
