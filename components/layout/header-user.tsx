@@ -1,12 +1,16 @@
-import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaWhatsapp } from "react-icons/fa";
 import Link from "next/link";
 import React from "react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 import { siteConfig } from "@/lib/config";
 import LiveSearch from "@/components/ui/live-search";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-export default function HeaderUser() {
+export default async function HeaderUser() {
+    const session = await getServerSession(authOptions);
+    const isAdmin = session?.user && (session.user as any).role === "ADMIN";
 
     return (
         <header className="sticky top-0 left-0 right-0 z-50 w-full h-16 border-b bg-card flex items-center justify-between shadow-sm">
@@ -25,6 +29,11 @@ export default function HeaderUser() {
 
                 {/* Right Side Actions */}
                 <nav className="flex items-center gap-2 sm:gap-4">
+                    {isAdmin && (
+                        <Link href="/admin" className="hidden sm:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+                            Admin Paneli
+                        </Link>
+                    )}
                     <ThemeToggle />
                     <div className="flex items-center gap-2 sm:gap-3">
                         {siteConfig.links.instagram && (
@@ -45,6 +54,11 @@ export default function HeaderUser() {
                         {siteConfig.links.youtube && (
                             <Link href={siteConfig.links.youtube} target="_blank" rel="noopener noreferrer" className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted">
                                 <FaYoutube className="w-5 h-5" />
+                            </Link>
+                        )}
+                        {siteConfig.links.whatsapp && (
+                            <Link href={siteConfig.links.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors rounded-md hover:bg-muted">
+                                <FaWhatsapp className="w-5 h-5" />
                             </Link>
                         )}
                     </div>

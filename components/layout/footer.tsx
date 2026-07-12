@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaWhatsapp, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import { siteConfig } from "@/lib/config";
 import db from "@/lib/db";
 
@@ -13,58 +13,24 @@ export default async function Footer() {
     return (
         <footer className="w-full border-t bg-card mt-auto pt-16 pb-8">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
-                    {/* Kurumsal / Hakkımızda */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 tracking-tight text-foreground">ÖZAY DERİ</h3>
-                        <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                            Özay Deri & Aksesuar; bileklik aksesuarları, iplik çeşitleri, makrome ipleri ve hakiki deri çeşitleriyle kaliteli ürünleri sizlerle buluşturuyor.
-                        </p>
-                        <div className="flex items-center gap-4">
-                            {siteConfig.links.instagram && (
-                                <Link href={siteConfig.links.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-pink-600 hover:text-white transition-all duration-300">
-                                    <FaInstagram className="w-4 h-4" />
-                                </Link>
-                            )}
-                            {siteConfig.links.facebook && (
-                                <Link href={siteConfig.links.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-blue-600 hover:text-white transition-all duration-300">
-                                    <FaFacebook className="w-4 h-4" />
-                                </Link>
-                            )}
-                            {siteConfig.links.twitter && (
-                                <Link href={siteConfig.links.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-sky-500 hover:text-white transition-all duration-300">
-                                    <FaTwitter className="w-4 h-4" />
-                                </Link>
-                            )}
-                            {siteConfig.links.youtube && (
-                                <Link href={siteConfig.links.youtube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-red-600 hover:text-white transition-all duration-300">
-                                    <FaYoutube className="w-4 h-4" />
-                                </Link>
-                            )}
-                        </div>
-                    </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16">
                     {/* Hızlı Linkler */}
-                    <div>
+                    <div className="md:col-span-6 lg:col-span-3">
                         <h3 className="text-lg font-bold mb-6 tracking-tight text-foreground">HIZLI LİNKLER</h3>
                         <ul className="space-y-3">
-                            <li>
-                                <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-                                    <span className="w-1 h-1 rounded-full bg-primary/50"></span>
-                                    Ana Sayfa
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/shop" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-                                    <span className="w-1 h-1 rounded-full bg-primary/50"></span>
-                                    Tüm Ürünler
-                                </Link>
-                            </li>
+                            {siteConfig.quickLinks.map((link, idx) => (
+                                <li key={idx}>
+                                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+                                        <span className="w-1 h-1 rounded-full bg-primary/50"></span>
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
                     {/* Kategoriler */}
-                    <div>
+                    <div className="md:col-span-6 lg:col-span-3">
                         <h3 className="text-lg font-bold mb-6 tracking-tight text-foreground">KATEGORİLER</h3>
                         <ul className="space-y-3">
                             {categories.map((category) => (
@@ -78,48 +44,96 @@ export default async function Footer() {
                         </ul>
                     </div>
 
-                    {/* İletişim Bilgileri */}
-                    <div>
+                    {/* İletişim Bilgileri ve Harita */}
+                    <div className="md:col-span-12 lg:col-span-6">
                         <h3 className="text-lg font-bold mb-6 tracking-tight text-foreground">İLETİŞİM</h3>
-                        <ul className="space-y-5">
-                            <li className="flex items-start gap-4 group">
-                                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                                    <FaMapMarkerAlt className="w-4 h-4" />
-                                </div>
-                                <span className="text-sm text-muted-foreground pt-1 leading-relaxed">
-                                    Tahtakale Mahallesi, Güvener İş Hanı<br />Özay Deri & Aksesuar
-                                </span>
-                            </li>
-                            <li className="flex items-start gap-4 group">
-                                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                                    <FaPhoneAlt className="w-4 h-4" />
-                                </div>
-                                <div className="flex flex-col gap-1 pt-1">
-                                    <Link href="tel:+905559785553" className="text-sm text-muted-foreground hover:text-primary transition-colors">+90 555 978 55 53</Link>
-                                    <Link href="tel:+902125286062" className="text-sm text-muted-foreground hover:text-primary transition-colors">+90 212 528 60 62</Link>
-                                </div>
-                            </li>
-                            <li className="flex items-center gap-4 group">
-                                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                                    <FaEnvelope className="w-4 h-4" />
-                                </div>
-                                <Link href="mailto:ozayleather@gmail.com" className="text-sm text-muted-foreground hover:text-primary transition-colors break-all">
-                                    ozayleather@gmail.com
-                                </Link>
-                            </li>
-                        </ul>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                            <ul className="space-y-5">
+                                <li className="flex items-start gap-4 group">
+                                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                                        <FaMapMarkerAlt className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-sm text-muted-foreground pt-1 leading-relaxed whitespace-pre-wrap">
+                                        {siteConfig.contact.address}
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-4 group">
+                                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                                        <FaPhoneAlt className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex flex-col gap-1 pt-1">
+                                        {siteConfig.contact.phones.map((phone, idx) => (
+                                            <Link key={idx} href={`tel:${phone.value}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                                                {phone.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </li>
+                                <li className="flex items-center gap-4 group">
+                                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                                        <FaEnvelope className="w-4 h-4" />
+                                    </div>
+                                    <Link href={`mailto:${siteConfig.contact.email}`} className="text-sm text-muted-foreground hover:text-primary transition-colors break-all">
+                                        {siteConfig.contact.email}
+                                    </Link>
+                                </li>
+                            </ul>
+                            
+                            <div className="w-full h-48 md:h-[220px] rounded-lg overflow-hidden border bg-muted -mt-2 md:mt-0">
+                                <iframe 
+                                    src={siteConfig.contact.mapIframeUrl} 
+                                    width="100%" 
+                                    height="100%" 
+                                    style={{ border: 0 }} 
+                                    allowFullScreen 
+                                    loading="lazy" 
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                ></iframe>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Alt Kısım */}
-                <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p className="text-sm text-muted-foreground text-center md:text-left">
+                <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <p className="text-sm text-muted-foreground text-center md:text-left order-3 md:order-1">
                         &copy; {new Date().getFullYear()} ÖZAY Deri / ÖZAY Leather Design. Tüm Hakları Saklıdır.
                     </p>
-                    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-sm text-muted-foreground">
-                        <Link href="/" className="hover:text-foreground transition-colors">Gizlilik Politikası</Link>
-                        <Link href="/" className="hover:text-foreground transition-colors">Mesafeli Satış Sözleşmesi</Link>
-                        <Link href="/" className="hover:text-foreground transition-colors">İptal ve İade Koşulları</Link>
+                    
+                    {/* Sosyal Medya */}
+                    <div className="flex items-center justify-center gap-2 order-2">
+                        {siteConfig.links.instagram && (
+                            <Link href={siteConfig.links.instagram} target="_blank" rel="noopener noreferrer" className="p-2 text-pink-600 hover:text-pink-700 dark:text-pink-500 dark:hover:text-pink-400 transition-colors rounded-md hover:bg-muted">
+                                <FaInstagram className="w-5 h-5" />
+                            </Link>
+                        )}
+                        {siteConfig.links.facebook && (
+                            <Link href={siteConfig.links.facebook} target="_blank" rel="noopener noreferrer" className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-muted">
+                                <FaFacebook className="w-5 h-5" />
+                            </Link>
+                        )}
+                        {siteConfig.links.twitter && (
+                            <Link href={siteConfig.links.twitter} target="_blank" rel="noopener noreferrer" className="p-2 text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors rounded-md hover:bg-muted">
+                                <FaTwitter className="w-5 h-5" />
+                            </Link>
+                        )}
+                        {siteConfig.links.youtube && (
+                            <Link href={siteConfig.links.youtube} target="_blank" rel="noopener noreferrer" className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted">
+                                <FaYoutube className="w-5 h-5" />
+                            </Link>
+                        )}
+                        {siteConfig.links.whatsapp && (
+                            <Link href={siteConfig.links.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors rounded-md hover:bg-muted">
+                                <FaWhatsapp className="w-5 h-5" />
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Logo */}
+                    <div className="flex items-center justify-center text-sm text-muted-foreground order-1 md:order-3">
+                        <Link href="/" className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity text-foreground">
+                            Özay Deri
+                        </Link>
                     </div>
                 </div>
             </div>
