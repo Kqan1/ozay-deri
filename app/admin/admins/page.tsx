@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Shield, Trash2, Users } from "lucide-react";
+import { Plus, Shield, Trash2, Users, Loader2 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ export default function ManageAdminsPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -61,16 +62,23 @@ export default function ManageAdminsPage() {
             action: {
                 label: "Evet, Sil",
                 onClick: async () => {
-                    const res = await deleteAdmin(id, session.user.id);
-                    if (res.error) {
-                        toast.error(res.error);
-                    } else {
-                        toast.success("Yönetici başarıyla silindi.");
-                        if (session.user.id === id) {
-                            signOut({ callbackUrl: "/" });
+                    setDeletingId(id);
+                    try {
+                        const res = await deleteAdmin(id, session.user.id);
+                        if (res.error) {
+                            toast.error(res.error);
                         } else {
-                            await loadData(false);
+                            toast.success("Yönetici başarıyla silindi.");
+                            if (session.user.id === id) {
+                                signOut({ callbackUrl: "/" });
+                            } else {
+                                await loadData(false);
+                            }
                         }
+                    } catch (error) {
+                        toast.error("Bir hata oluştu.");
+                    } finally {
+                        setDeletingId(null);
                     }
                 },
             },
@@ -171,10 +179,15 @@ export default function ManageAdminsPage() {
                                                 <td className="px-6 py-4 text-right">
                                                     <button
                                                         onClick={() => handleDeleteAdmin(admin.id)}
-                                                        className="text-destructive hover:bg-destructive/10 p-2 rounded-md transition-colors cursor-pointer inline-flex items-center"
+                                                        disabled={deletingId === admin.id}
+                                                        className="text-destructive hover:bg-destructive/10 p-2 rounded-md transition-colors cursor-pointer inline-flex items-center disabled:opacity-50"
                                                         title="Yöneticiyi Sil"
                                                     >
-                                                        <Trash2 className="w-4 h-4" />
+                                                        {deletingId === admin.id ? (
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="w-4 h-4" />
+                                                        )}
                                                     </button>
                                                 </td>
                                             </tr>

@@ -26,11 +26,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             >
                 <Providers>
                     <AdminMenuProvider>
-                        <div className="flex min-h-screen">
+                        <div className="flex h-screen overflow-hidden bg-background">
                             <AdminSidebar />
-                            <div className="flex-1 flex flex-col min-w-0">
+                            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
                                 <HeaderAdmin />
-                                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+                                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
                                     <div className="mx-auto max-w-7xl w-full">{children}</div>
                                 </main>
                             </div>

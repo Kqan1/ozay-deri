@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings2, Pencil, Trash2 } from "lucide-react";
+import { Settings2, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export default function FieldsAdminPage() {
     const [isFilterable, setIsFilterable] = useState(false);
     const [isSortable, setIsSortable] = useState(false);
     const [isSearchable, setIsSearchable] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -88,9 +89,16 @@ export default function FieldsAdminPage() {
             action: {
                 label: "Evet, Sil",
                 onClick: async () => {
-                    await deleteFieldDefinition(id);
-                    toast.success("Alan başarıyla silindi.");
-                    await loadData(false);
+                    setDeletingId(id);
+                    try {
+                        await deleteFieldDefinition(id);
+                        toast.success("Alan başarıyla silindi.");
+                        await loadData(false);
+                    } catch (error) {
+                        toast.error("Alan silinirken hata oluştu.");
+                    } finally {
+                        setDeletingId(null);
+                    }
                 },
             },
             cancel: { label: "İptal", onClick: () => {} },
@@ -262,9 +270,15 @@ export default function FieldsAdminPage() {
                                                     variant="destructive"
                                                     size="sm"
                                                     onClick={() => handleDeleteField(f.id)}
+                                                    disabled={deletingId === f.id}
                                                     className="h-8 gap-1.5"
                                                 >
-                                                    <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                    {deletingId === f.id ? (
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    )}
+                                                    Sil
                                                 </Button>
                                             </div>
                                         </td>

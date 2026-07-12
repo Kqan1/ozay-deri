@@ -12,8 +12,16 @@ export function AdminSidebar() {
     const { isOpen, setIsOpen } = useAdminMenu();
 
     const links = [
-        { name: "Panel (Dashboard)", href: "/admin", icon: LayoutDashboard },
-        { name: "Ürünler", href: "/admin/products", icon: Package },
+        {   
+            name: "Panel (Dashboard)",
+            href: "/admin", 
+            icon: LayoutDashboard 
+        },
+        { 
+            name: "Ürünler", 
+            href: "/admin/products", 
+            icon: Package 
+        },
         {
             name: "Kategoriler",
             href: "/admin/categories",
@@ -24,13 +32,16 @@ export function AdminSidebar() {
             href: "/admin/carousel",
             icon: Image,
         },
-        {
-            name: "Siparişler",
-            href: "/admin/orders",
-            icon: ShoppingBag,
+        { 
+            name: "Özel Alanlar", 
+            href: "/admin/fields", 
+            icon: Settings2 
         },
-        { name: "Özel Alanlar", href: "/admin/fields", icon: Settings2 },
-        { name: "Yöneticiler", href: "/admin/admins", icon: Shield },
+        { 
+            name: "Yöneticiler", 
+            href: "/admin/admins", 
+            icon: Shield 
+        },
     ];
 
     return (

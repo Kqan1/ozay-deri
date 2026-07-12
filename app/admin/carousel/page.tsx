@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { 
-    Eye, EyeOff, Image as ImageIcon, Pencil, Trash2, Plus, ChevronUp, ChevronDown, Check, X,
+    Eye, EyeOff, Image as ImageIcon, Pencil, Trash2, Plus, ChevronUp, ChevronDown, Check, X, Loader2,
     ShoppingBag, ShoppingCart, ArrowRight, ArrowDown, Star, 
     Tag, Search, Phone, Mail, Info, Play, ExternalLink, Heart, 
     Gift, Percent
@@ -83,15 +83,18 @@ export default function CarouselAdminPage() {
     const [isActive, setIsActive] = useState(true);
     const [previewSlideId, setPreviewSlideId] = useState<string | null>(null);
 
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [togglingId, setTogglingId] = useState<string | null>(null);
+
     useEffect(() => {
         loadData();
     }, []);
 
-    async function loadData() {
-        setIsLoading(true);
+    async function loadData(showLoading = true) {
+        if (showLoading) setIsLoading(true);
         const data = await getCarouselSlides();
         setSlides(data as any);
-        setIsLoading(false);
+        if (showLoading) setIsLoading(false);
     }
 
     function resetForm() {
@@ -164,7 +167,7 @@ export default function CarouselAdminPage() {
                 toast.success("Yeni slayt eklendi.");
             }
             resetForm();
-            await loadData();
+            await loadData(false);
         } catch (error) {
             toast.error("Bir hata oluştu.");
         } finally {
@@ -178,10 +181,17 @@ export default function CarouselAdminPage() {
             action: {
                 label: "Evet, Sil",
                 onClick: async () => {
-                    await deleteCarouselSlide(id);
-                    toast.success("Slayt silindi.");
-                    if (editSlideId === id) resetForm();
-                    await loadData();
+                    setDeletingId(id);
+                    try {
+                        await deleteCarouselSlide(id);
+                        toast.success("Slayt silindi.");
+                        if (editSlideId === id) resetForm();
+                        await loadData(false); // Re-fetch to sync
+                    } catch (error) {
+                        toast.error("Silme işlemi başarısız oldu.");
+                    } finally {
+                        setDeletingId(null);
+                    }
                 },
             },
             cancel: { label: "İptal", onClick: () => {} },
@@ -189,12 +199,20 @@ export default function CarouselAdminPage() {
     }
 
     async function handleToggleActive(slide: CarouselSlideData) {
-        await updateCarouselSlide(slide.id, {
-            image: slide.image,
-            title: slide.title,
-            isActive: !slide.isActive,
-        });
-        await loadData();
+        setTogglingId(slide.id);
+        try {
+            await updateCarouselSlide(slide.id, {
+                image: slide.image,
+                title: slide.title,
+                isActive: !slide.isActive,
+            });
+            // Re-fetch quietly to sync
+            await loadData(false);
+        } catch (error) {
+            toast.error("Durum güncellenirken hata oluştu.");
+        } finally {
+            setTogglingId(null);
+        }
     }
 
     async function handleRemoveImage() {
@@ -219,9 +237,15 @@ export default function CarouselAdminPage() {
 
         // Update orders to match array index
         const updates = newSlides.map((s, i) => ({ id: s.id, order: i }));
+        const originalSlides = [...slides];
         setSlides(newSlides); // optimistic update
         
-        await updateCarouselSlideOrder(updates);
+        try {
+            await updateCarouselSlideOrder(updates);
+        } catch (error) {
+            setSlides(originalSlides);
+            toast.error("Sıralama güncellenirken hata oluştu.");
+        }
     }
 
     const addButton = () => {
@@ -615,10 +639,13 @@ export default function CarouselAdminPage() {
                                         <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
                                             <button
                                                 onClick={() => handleToggleActive(slide)}
-                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-2 gap-1.5 min-w-[85px]"
+                                                disabled={togglingId === slide.id}
+                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-2 gap-1.5 min-w-[85px] disabled:opacity-50"
                                                 title={slide.isActive ? "Gizle" : "Göster"}
                                             >
-                                                {slide.isActive ? (
+                                                {togglingId === slide.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : slide.isActive ? (
                                                     <><Eye className="w-3.5 h-3.5" /> Görünür</>
                                                 ) : (
                                                     <><EyeOff className="w-3.5 h-3.5 text-muted-foreground" /> Gizli</>
@@ -632,9 +659,14 @@ export default function CarouselAdminPage() {
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(slide.id)}
-                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 h-8 px-3 gap-1.5"
+                                                disabled={deletingId === slide.id}
+                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 h-8 px-3 gap-1.5 disabled:opacity-50"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                {deletingId === slide.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <><Trash2 className="w-3.5 h-3.5" /> Sil</>
+                                                )}
                                             </button>
                                         </div>
                                     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { CornerDownRight, Eye, EyeOff, Image as ImageIcon, Package, Pencil, Trash2 } from "lucide-react";
+import { CornerDownRight, Eye, EyeOff, Image as ImageIcon, Package, Pencil, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -37,6 +37,8 @@ export default function ProductsAdminPage() {
     const [newImages, setNewImages] = useState<string[]>([]);
     const [fields, setFields] = useState<CreateProductInput["fields"]>([]);
     const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [togglingId, setTogglingId] = useState<string | null>(null);
 
     const handleImagesChange = async (updatedImages: string[]) => {
         const removed = images.filter((img) => !updatedImages.includes(img));
@@ -209,9 +211,16 @@ export default function ProductsAdminPage() {
             action: {
                 label: "Evet, Sil",
                 onClick: async () => {
-                    await deleteProduct(id);
-                    toast.success("Ürün silindi.");
-                    await loadData(false);
+                    setDeletingId(id);
+                    try {
+                        await deleteProduct(id);
+                        toast.success("Ürün silindi.");
+                        await loadData(false);
+                    } catch (error) {
+                        toast.error("Ürün silinirken bir hata oluştu.");
+                    } finally {
+                        setDeletingId(null);
+                    }
                 },
             },
             cancel: { label: "İptal", onClick: () => {} },
@@ -220,8 +229,7 @@ export default function ProductsAdminPage() {
 
     async function handleToggleProductVisibility(prod: any, e?: React.MouseEvent) {
         if (e) e.stopPropagation();
-        const originalProducts = [...products];
-        setProducts(products.map((p) => (p.id === prod.id ? { ...p, isHidden: !p.isHidden } : p)));
+        setTogglingId(prod.id);
         try {
             await updateProduct(prod.id, {
                 name: prod.name,
@@ -238,9 +246,11 @@ export default function ProductsAdminPage() {
                 })),
             });
             toast.success(prod.isHidden ? "Ürün görünür yapıldı." : "Ürün gizlendi.");
+            await loadData(false);
         } catch (_error) {
-            setProducts(originalProducts);
-            toast.error("Hata oluştu, işlem geri alındı.");
+            toast.error("Hata oluştu, işlem başarısız oldu.");
+        } finally {
+            setTogglingId(null);
         }
     }
 
@@ -586,9 +596,12 @@ export default function ProductsAdminPage() {
                                                                         onClick={(e) =>
                                                                             handleToggleProductVisibility(p, e)
                                                                         }
-                                                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 gap-1.5 w-[90px]"
+                                                                        disabled={togglingId === p.id}
+                                                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 gap-1.5 w-[90px] disabled:opacity-50"
                                                                     >
-                                                                        {!p.isHidden ? (
+                                                                        {togglingId === p.id ? (
+                                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                        ) : !p.isHidden ? (
                                                                             <>
                                                                                 <Eye className="w-3.5 h-3.5" /> Görünür
                                                                             </>
@@ -612,9 +625,14 @@ export default function ProductsAdminPage() {
                                                                             e.stopPropagation();
                                                                             handleDeleteProduct(p.id);
                                                                         }}
-                                                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 h-8 px-3 gap-1.5"
+                                                                        disabled={deletingId === p.id}
+                                                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 h-8 px-3 gap-1.5 disabled:opacity-50"
                                                                     >
-                                                                        <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                                        {deletingId === p.id ? (
+                                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                        ) : (
+                                                                            <><Trash2 className="w-3.5 h-3.5" /> Sil</>
+                                                                        )}
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -724,9 +742,14 @@ export default function ProductsAdminPage() {
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteProduct(p.id)}
-                                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 h-8 px-3"
+                                                disabled={deletingId === p.id}
+                                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 h-8 px-3 gap-1.5 disabled:opacity-50"
                                             >
-                                                Kalıcı Sil
+                                                {deletingId === p.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <><Trash2 className="w-3.5 h-3.5" /> Kalıcı Sil</>
+                                                )}
                                             </button>
                                         </div>
                                     </div>

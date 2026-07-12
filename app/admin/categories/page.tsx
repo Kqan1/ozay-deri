@@ -1,6 +1,6 @@
 "use client";
 
-import { CornerDownRight, Eye, EyeOff, Folders, Image as ImageIcon, Pencil, Trash2 } from "lucide-react";
+import { CornerDownRight, Eye, EyeOff, Folders, Image as ImageIcon, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CustomUploadDropzone } from "@/components/ui/custom-upload";
@@ -22,6 +22,9 @@ export default function CategoriesAdminPage() {
     const [images, setImages] = useState<string[]>([]);
     const [newImages, setNewImages] = useState<string[]>([]);
     const [isUploading, setIsUploading] = useState(false);
+
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [togglingId, setTogglingId] = useState<string | null>(null);
 
     const handleImagesChange = async (updatedImages: string[]) => {
         const removed = images.filter((img) => !updatedImages.includes(img));
@@ -109,9 +112,16 @@ export default function CategoriesAdminPage() {
                         <button
                             onClick={async () => {
                                 toast.dismiss(t);
-                                await deleteCategory(id, true);
-                                toast.success("Kategori ve içindeki tüm ürünler silindi.");
-                                await loadData(false);
+                                setDeletingId(id);
+                                try {
+                                    await deleteCategory(id, true);
+                                    toast.success("Kategori ve içindeki tüm ürünler silindi.");
+                                    await loadData(false);
+                                } catch (error) {
+                                    toast.error("Silme işlemi başarısız oldu.");
+                                } finally {
+                                    setDeletingId(null);
+                                }
                             }}
                             className="bg-destructive/10 hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 text-destructive px-3 py-2 rounded-md text-sm font-medium transition-colors"
                         >
@@ -120,9 +130,16 @@ export default function CategoriesAdminPage() {
                         <button
                             onClick={async () => {
                                 toast.dismiss(t);
-                                await deleteCategory(id, false);
-                                toast.success("Kategori silindi. Ürünler 'Kategorisiz' olarak korundu.");
-                                await loadData(false);
+                                setDeletingId(id);
+                                try {
+                                    await deleteCategory(id, false);
+                                    toast.success("Kategori silindi. Ürünler 'Kategorisiz' olarak korundu.");
+                                    await loadData(false);
+                                } catch (error) {
+                                    toast.error("Silme işlemi başarısız oldu.");
+                                } finally {
+                                    setDeletingId(null);
+                                }
                             }}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors"
                         >
@@ -142,12 +159,20 @@ export default function CategoriesAdminPage() {
     }
 
     async function handleToggleCategoryVisibility(cat: any) {
-        await updateCategory(cat.id, {
-            name: cat.name,
-            parentId: cat.parentId,
-            isHidden: !cat.isHidden,
-        });
-        await loadData(false);
+        setTogglingId(cat.id);
+        try {
+            await updateCategory(cat.id, {
+                name: cat.name,
+                parentId: cat.parentId,
+                isHidden: !cat.isHidden,
+            });
+            toast.success(cat.isHidden ? "Kategori görünür yapıldı." : "Kategori gizlendi.");
+            await loadData(false);
+        } catch (error) {
+            toast.error("İşlem geri alındı, hata oluştu.");
+        } finally {
+            setTogglingId(null);
+        }
     }
 
     function resetForm() {
@@ -310,9 +335,12 @@ export default function CategoriesAdminPage() {
                                     <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
                                         <button
                                             onClick={() => handleToggleCategoryVisibility(c)}
-                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 gap-1.5 w-[90px]"
+                                            disabled={togglingId === c.id}
+                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 gap-1.5 w-[90px]"
                                         >
-                                            {!c.isHidden ? (
+                                            {togglingId === c.id ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : !c.isHidden ? (
                                                 <>
                                                     <Eye className="w-3.5 h-3.5" /> Görünür
                                                 </>
@@ -330,9 +358,14 @@ export default function CategoriesAdminPage() {
                                         </button>
                                         <button
                                             onClick={() => handleDeleteCategory(c.id)}
-                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 h-8 px-3 gap-1.5"
+                                            disabled={deletingId === c.id}
+                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 h-8 px-3 gap-1.5"
                                         >
-                                            <Trash2 className="w-3.5 h-3.5" /> Sil
+                                            {deletingId === c.id ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <><Trash2 className="w-3.5 h-3.5" /> Sil</>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
