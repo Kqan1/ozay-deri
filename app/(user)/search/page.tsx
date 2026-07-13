@@ -1,9 +1,12 @@
 import { ChevronRight } from "lucide-react";
-import Image from "next/image";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 import Link from "next/link";
 import { logEmptySearch } from "@/app/actions/search-actions";
 import { Prisma } from "@/app/generated/prisma/client";
 import SidebarFilter from "@/components/shop/sidebar-filter";
+import MobileFilter from "@/components/shop/mobile-filter";
+import SortDropdown from "@/components/shop/sort-dropdown";
+import ShopPagination from "@/components/shop/shop-pagination";
 import db from "@/lib/db";
 
 export default async function SearchPage({
@@ -15,6 +18,7 @@ export default async function SearchPage({
     const q = resolvedParams.q as string;
     const page = Number(resolvedParams.page) || 1;
     const categoryParam = resolvedParams.category as string | undefined;
+    const sortParam = resolvedParams.sort as string | undefined;
     const categoryIds = categoryParam ? categoryParam.split(",") : [];
 
     if (!q) {
@@ -26,17 +30,36 @@ export default async function SearchPage({
         );
     }
 
-    // 1. Find all filterable fields globally or for the selected category
-    const filterableFields = await db.fieldDefinition.findMany({
-        where: {
-            isFilterable: true,
-            ...(categoryIds.length > 0 ? { OR: [{ isGlobal: true }, { categoryId: { in: categoryIds } }] } : {}),
-        },
-    });
-
     const categories = await db.category.findMany({
         where: { isHidden: false },
         select: { id: true, name: true, parentId: true },
+    });
+
+    const ancestorIds = new Set<string>();
+    for (const catId of categoryIds) {
+        let currentId: string | null = catId;
+        while (currentId) {
+            const cat = categories.find((c) => c.id === currentId);
+            if (!cat || !cat.parentId) break;
+            ancestorIds.add(cat.parentId);
+            currentId = cat.parentId;
+        }
+    }
+
+    // 1. Find all filterable fields globally, for selected category, or inherited from ancestors
+    const filterableFields = await db.fieldDefinition.findMany({
+        where: {
+            isFilterable: true,
+            ...(categoryIds.length > 0
+                ? {
+                      OR: [
+                          { isGlobal: true },
+                          { categoryId: { in: categoryIds } },
+                          { categoryId: { in: Array.from(ancestorIds) }, includeSubcategories: true },
+                      ],
+                  }
+                : {}),
+        },
     });
 
     // 2. Extract selected filters from searchParams
@@ -78,12 +101,7 @@ export default async function SearchPage({
       p.id, 
       p.name, 
       c.name as "categoryName",
-      (
-        SELECT "numberValue" 
-        FROM "ProductField" pf 
-        WHERE pf."productId" = p.id AND pf.name = 'Fiyat'
-        LIMIT 1
-      ) as price,
+      p.price,
       (
         SELECT "stringValue" 
         FROM "ProductField" pf 
@@ -105,7 +123,15 @@ export default async function SearchPage({
        )
     )
     ${filterConditions}
-    ORDER BY GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) DESC
+    ${
+        sortParam === "price_asc"
+            ? Prisma.sql`ORDER BY p.price ASC NULLS LAST`
+            : sortParam === "price_desc"
+            ? Prisma.sql`ORDER BY p.price DESC NULLS LAST`
+            : sortParam === "newest"
+            ? Prisma.sql`ORDER BY p."createdAt" DESC`
+            : Prisma.sql`ORDER BY GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) DESC`
+    }
     LIMIT 12 OFFSET ${(page - 1) * 12}
   `;
 
@@ -137,7 +163,23 @@ export default async function SearchPage({
         }),
     );
 
-    const hasNextPage = results.length === 12;
+    const searchCondition = {
+        OR: [
+            { name: { contains: q, mode: 'insensitive' as const } },
+            { category: { name: { contains: q, mode: 'insensitive' as const } } }
+        ]
+    };
+    
+    const totalResults = await db.product.count({
+        where: {
+            AND: [
+                searchCondition,
+                categoryIds.length > 0 ? { OR: [{ categoryId: { in: categoryIds } }, { category: { parentId: { in: categoryIds } } }] } : {},
+            ],
+        },
+    });
+
+    const totalPages = Math.ceil(totalResults / 12);
 
     // Helper to build URL with new or removed filter
     const _buildFilterUrl = (key: string, value?: string) => {
@@ -151,8 +193,8 @@ export default async function SearchPage({
     };
 
     return (
-        <div className="flex flex-col gap-8">
-            <div className="flex items-center text-sm text-muted-foreground mb-8 space-x-2">
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center text-sm text-muted-foreground space-x-2">
                 <Link href="/" className="hover:text-foreground transition-colors">
                     Ana Sayfa
                 </Link>
@@ -160,14 +202,25 @@ export default async function SearchPage({
                 <span className="text-foreground">"{q}" için sonuçlar</span>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-10">
-                {/* Left Sidebar (Filters) */}
-                <aside className="w-full lg:w-64 shrink-0">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+                {/* Mobile Filter & Sort Buttons */}
+                <div className="flex items-center gap-3 lg:hidden">
+                    <div className="flex-1">
+                        <MobileFilter filterableFields={filterOptions} categories={categories} />
+                    </div>
+                    <SortDropdown />
+                </div>
+
+                {/* Left Sidebar (Filters) for Desktop */}
+                <aside className="hidden lg:block w-64 shrink-0">
                     <SidebarFilter filterableFields={filterOptions} categories={categories} />
                 </aside>
 
                 {/* Main Content (Results) */}
                 <main className="flex-1">
+                    <div className="hidden lg:flex justify-end mb-6">
+                        <SortDropdown />
+                    </div>
                     {results.length === 0 ? (
                         <div className="text-center py-20 bg-muted/50 border rounded-xl">
                             <h3 className="text-xl font-medium mb-2 text-foreground">Sonuç Bulunamadı</h3>
@@ -182,11 +235,10 @@ export default async function SearchPage({
                                 <Link key={product.id} href={`/products/${product.id}`} className="group block">
                                     <div className="aspect-[4/5] relative rounded-xl overflow-hidden bg-card border group-hover:border-primary/50 transition-colors">
                                         {product.thumbnail ? (
-                                            <Image
+                                            <ImageWithSpinner
                                                 src={product.thumbnail}
                                                 alt={product.name}
-                                                fill
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
@@ -211,26 +263,9 @@ export default async function SearchPage({
                     )}
 
                     {/* Pagination */}
-                    {(page > 1 || hasNextPage) && (
-                        <div className="mt-12 flex items-center justify-center space-x-4 border-t pt-8">
-                            {page > 1 && (
-                                <Link
-                                    href={`/search?q=${q}&page=${page - 1}`}
-                                    className="px-4 py-2 text-sm font-medium rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors"
-                                >
-                                    Önceki Sayfa
-                                </Link>
-                            )}
-                            {hasNextPage && (
-                                <Link
-                                    href={`/search?q=${q}&page=${page + 1}`}
-                                    className="px-4 py-2 text-sm font-medium rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-sm"
-                                >
-                                    Sonraki Sayfa
-                                </Link>
-                            )}
-                        </div>
-                    )}
+                    <div className="mt-12 border-t pt-8">
+                        <ShopPagination page={page} totalPages={totalPages} />
+                    </div>
                 </main>
             </div>
         </div>

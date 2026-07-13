@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 
 export interface CarouselSlideData {
     id: string;
@@ -61,11 +62,12 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
                         <div className="relative w-full rounded-2xl overflow-hidden bg-black/90 border h-[400px] sm:h-[500px] flex items-center justify-center text-center px-4">
                             {/* Arkaplan Görseli */}
                             {slide.image && (
-                                <img
-                                    src={slide.image}
-                                    alt={slide.title}
-                                    className="absolute inset-0 w-full h-full object-cover z-0 opacity-70"
-                                />
+                                <div className="absolute inset-0 z-0 opacity-70">
+                                    <ImageWithSpinner
+                                        src={slide.image}
+                                        alt={slide.title}
+                                    />
+                                </div>
                             )}
                             {/* Degrade Katmanı (Yazı okunaklılığı için) */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-0"></div>

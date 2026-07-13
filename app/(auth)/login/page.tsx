@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import React, { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 function LoginForm() {
     const router = useRouter();
@@ -67,28 +69,22 @@ function LoginForm() {
     };
 
     return (
-        <div className="backdrop-blur-xl bg-white/[0.02] border border-white/[0.08] shadow-2xl rounded-3xl p-8 sm:p-10 w-full relative overflow-hidden group">
-            {/* Ambient decorative border highlight */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
-
-            <div className="flex flex-col space-y-6">
-                {/* Brand Header */}
-                <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
-                        ÖZAY Deri
-                    </h1>
-                    <p className="text-sm text-neutral-400">Hesabınıza giriş yapın</p>
-                </div>
-
+        <Card className="w-full">
+            <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl font-bold">Hesabınıza giriş yapın</CardTitle>
+                <CardDescription>
+                    Devam etmek için bilgilerinizi giriniz
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Username Input */}
-                    <div className="space-y-1">
-                        <label htmlFor="username" className="text-xs font-semibold text-neutral-300 ml-1">
+                    <div className="space-y-2">
+                        <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                             Kullanıcı Adı
                         </label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-indigo-400 transition-colors">
-                                <UserIcon size={18} />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                                <UserIcon size={16} />
                             </div>
                             <input
                                 id="username"
@@ -99,21 +95,20 @@ function LoginForm() {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 disabled={isLoading}
-                                className="w-full pl-10 pr-4 py-3 bg-white/[0.03] border border-white/[0.1] rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all duration-200"
+                                className="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                             />
                         </div>
                     </div>
 
-                    {/* Password Input */}
-                    <div className="space-y-1">
-                        <div className="flex justify-between items-center px-1">
-                            <label htmlFor="password" className="text-xs font-semibold text-neutral-300">
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                 Şifre
                             </label>
                         </div>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-indigo-400 transition-colors">
-                                <Lock size={18} />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                                <Lock size={16} />
                             </div>
                             <input
                                 id="password"
@@ -124,58 +119,44 @@ function LoginForm() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={isLoading}
-                                className="w-full pl-10 pr-10 py-3 bg-white/[0.03] border border-white/[0.1] rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all duration-200"
+                                className="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-neutral-300 focus:outline-none"
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
                             >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                         </div>
                     </div>
 
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full mt-2 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:opacity-50 text-white font-medium rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/25 transition-all duration-200 active:scale-[0.98]"
-                    >
-                        {isLoading ? (
-                            <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                            <>
-                                Giriş Yap <ArrowRight size={18} />
-                            </>
-                        )}
-                    </button>
+                    <Button type="submit" className="w-full mt-2" disabled={isLoading}>
+                        {isLoading ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
+                        Giriş Yap
+                        {!isLoading ? <ArrowRight size={16} className="ml-2" /> : null}
+                    </Button>
                 </form>
-
-                {/* Footer Switcher */}
-                <div className="text-center pt-2 text-sm text-neutral-400">
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-4">
+                <div className="text-sm text-muted-foreground text-center">
                     Hesabınız yok mu?{" "}
-                    <Link
-                        href="/register"
-                        className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors ml-1"
-                    >
+                    <Link href="/register" className="text-primary hover:underline font-medium">
                         Yeni Hesap Oluşturun
                     </Link>
                 </div>
-            </div>
-        </div>
+            </CardFooter>
+        </Card>
     );
 }
 
 export default function LoginPage() {
     return (
-        <Suspense
-            fallback={
-                <div className="flex justify-center p-8">
-                    <Loader2 size={24} className="animate-spin text-indigo-500" />
-                </div>
-            }
-        >
+        <Suspense fallback={
+            <div className="flex justify-center p-8">
+                <Loader2 size={24} className="animate-spin text-primary" />
+            </div>
+        }>
             <LoginForm />
         </Suspense>
     );

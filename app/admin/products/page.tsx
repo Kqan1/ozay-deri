@@ -100,7 +100,7 @@ export default function ProductsAdminPage() {
 
         setIsSubmitting(true);
 
-        const applicableFieldDefs = fieldDefinitions.filter((fd) => fd.isGlobal || fd.categoryId === productCategoryId);
+        const applicableFieldDefs = getApplicableFieldDefs();
         const applicableNames = applicableFieldDefs.map((fd) => fd.name);
 
         const legacyFields = fields.filter((f) => !applicableNames.includes(f.name));
@@ -280,6 +280,26 @@ export default function ProductsAdminPage() {
         setFields(newFields);
     }
 
+    const getApplicableFieldDefs = () => {
+        if (!productCategoryId) return fieldDefinitions.filter((fd) => fd.isGlobal);
+
+        const ancestorIds = new Set<string>();
+        let currentId: string | null = productCategoryId;
+        while (currentId) {
+            const cat = categories.find((c) => c.id === currentId);
+            if (!cat || !cat.parentId) break;
+            ancestorIds.add(cat.parentId);
+            currentId = cat.parentId;
+        }
+
+        return fieldDefinitions.filter((fd) => {
+            if (fd.isGlobal) return true;
+            if (fd.categoryId === productCategoryId) return true;
+            if (fd.includeSubcategories && fd.categoryId && ancestorIds.has(fd.categoryId)) return true;
+            return false;
+        });
+    };
+
     const categorizedProducts = products.filter((p) => p.categoryId !== null);
     const uncategorizedProducts = products.filter((p) => p.categoryId === null);
 
@@ -393,14 +413,13 @@ export default function ProductsAdminPage() {
                                     Kategori Özellikleri
                                 </h3>
 
-                                {fieldDefinitions.filter((fd) => fd.isGlobal || fd.categoryId === productCategoryId)
+                                {getApplicableFieldDefs()
                                     .length === 0 ? (
                                     <p className="text-sm text-muted-foreground italic">
                                         Bu kategori için tanımlı alan yok.
                                     </p>
                                 ) : (
-                                    fieldDefinitions
-                                        .filter((fd) => fd.isGlobal || fd.categoryId === productCategoryId)
+                                    getApplicableFieldDefs()
                                         .map((fd, i) => {
                                             const currentVal = fields.find((f) => f.name === fd.name) || {
                                                 name: fd.name,

@@ -1,8 +1,8 @@
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import db from "@/lib/db";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 
 export default async function Home() {
     // 1. Fetch Top-Level Categories (parentId is null)
@@ -70,13 +70,12 @@ export default async function Home() {
                                 <div className="relative h-48 w-full bg-card border rounded-xl overflow-hidden flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 transition-colors shadow-sm hover:shadow-md group">
                                     {category.images && category.images.length > 0 && (
                                         <>
-                                            <Image 
+                                            <ImageWithSpinner 
                                                 src={category.images[0]} 
                                                 alt={category.name} 
-                                                fill 
-                                                className="object-cover z-0 group-hover:scale-105 transition-transform duration-500" 
+                                                className="z-0 group-hover:scale-105 transition-transform duration-500" 
                                             />
-                                            <div className="absolute inset-0 bg-black/40 z-0 group-hover:bg-black/50 transition-colors"></div>
+                                            <div className="absolute inset-0 bg-black/40 z-0 group-hover:bg-black/50 transition-colors pointer-events-none"></div>
                                         </>
                                     )}
                                     <div className="relative z-10 flex flex-col items-center">
@@ -113,11 +112,10 @@ export default async function Home() {
                                 <Link key={product.id} href={`/products/${product.id}`} className="group block">
                                     <div className="aspect-[4/5] relative rounded-xl overflow-hidden bg-card border group-hover:border-primary/50 transition-colors">
                                         {thumbnail ? (
-                                            <Image
+                                            <ImageWithSpinner
                                                 src={thumbnail}
                                                 alt={product.name}
-                                                fill
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">

@@ -2,8 +2,14 @@ import Link from "next/link";
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaWhatsapp, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import { siteConfig } from "@/lib/config";
 import db from "@/lib/db";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export default async function Footer() {
+    const session = await getServerSession(authOptions);
+    const isAdmin = session?.user && (session.user as any).role === "ADMIN";
+
     const categories = await db.category.findMany({
         where: { isHidden: false, parentId: null },
         orderBy: { name: "asc" },
@@ -18,6 +24,14 @@ export default async function Footer() {
                     <div className="md:col-span-6 lg:col-span-3">
                         <h3 className="text-lg font-bold mb-6 tracking-tight text-foreground">HIZLI LİNKLER</h3>
                         <ul className="space-y-3">
+                            {isAdmin && (
+                                <li>
+                                    <Link href="/admin" className="text-sm font-bold text-primary hover:opacity-80 transition-opacity flex items-center gap-2">
+                                        <span className="w-1 h-1 rounded-full bg-primary"></span>
+                                        Admin Paneli
+                                    </Link>
+                                </li>
+                            )}
                             {siteConfig.quickLinks.map((link, idx) => (
                                 <li key={idx}>
                                     <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
@@ -96,9 +110,12 @@ export default async function Footer() {
 
                 {/* Alt Kısım */}
                 <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <p className="text-sm text-muted-foreground text-center md:text-left order-3 md:order-1">
-                        &copy; {new Date().getFullYear()} ÖZAY Deri / ÖZAY Leather Design. Tüm Hakları Saklıdır.
-                    </p>
+                    <div className="flex items-center gap-4 order-3 md:order-1 flex-col md:flex-row">
+                        <ThemeToggle />
+                        <p className="text-sm text-muted-foreground text-center md:text-left">
+                            &copy; {new Date().getFullYear()} ÖZAY Deri / ÖZAY Leather Design. Tüm Hakları Saklıdır.
+                        </p>
+                    </div>
                     
                     {/* Sosyal Medya */}
                     <div className="flex items-center justify-center gap-2 order-2">

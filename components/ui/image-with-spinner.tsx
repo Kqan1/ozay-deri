@@ -1,3 +1,5 @@
+"use client";
+
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -15,7 +17,7 @@ export function ImageWithSpinner({ src, alt, className }: { src: string; alt?: s
             <img
                 src={src}
                 alt={alt || ""}
-                className={`${className || ""} ${isLoading ? "opacity-0" : "opacity-100"} transition-opacity duration-300`}
+                className={`w-full h-full object-cover ${className || ""} ${isLoading ? "opacity-0" : "opacity-100"} transition-all duration-500`}
                 onLoad={() => setIsLoading(false)}
                 onError={() => setIsLoading(false)}
             />

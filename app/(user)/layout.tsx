@@ -5,6 +5,7 @@ import Footer from "@/components/layout/footer";
 import Header from "@/components/layout/header-user";
 
 import CategoriesBar from "@/components/layout/categories-bar";
+import CategoriesBarWrapper from "@/components/layout/categories-bar-wrapper";
 
 import Providers from "@/components/providers/providers";
 import { siteConfig } from "@/lib/config";
@@ -25,7 +26,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <Providers>
                     <div className="flex min-h-screen flex-col">
                         <Header />
-                        <CategoriesBar />
+                        <CategoriesBarWrapper>
+                            <CategoriesBar />
+                        </CategoriesBarWrapper>
                         <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
                             <div className="mx-auto max-w-7xl w-full">{children}</div>
                         </main>

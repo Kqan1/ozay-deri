@@ -1,7 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SidebarFilter from "@/components/shop/sidebar-filter";
+import MobileFilter from "@/components/shop/mobile-filter";
+import SortDropdown from "@/components/shop/sort-dropdown";
+import ShopPagination from "@/components/shop/shop-pagination";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 import db from "@/lib/db";
 
 export default async function CategoryPage({
@@ -20,6 +23,7 @@ export default async function CategoryPage({
 
     const category = await db.category.findUnique({
         where: { id: categoryId },
+        include: { subcategories: { where: { isHidden: false } } },
     });
 
     if (!category) {
@@ -27,10 +31,23 @@ export default async function CategoryPage({
     }
 
     // 1. Fetch filterable fields for this category or global
+    const allCategories = await db.category.findMany({ select: { id: true, parentId: true } });
+    const ancestorIds = new Set<string>();
+    let currentId: string | null = category.parentId;
+    while (currentId) {
+        ancestorIds.add(currentId);
+        const parent = allCategories.find((c) => c.id === currentId);
+        currentId = parent ? parent.parentId : null;
+    }
+
     const filterableFields = await db.fieldDefinition.findMany({
         where: {
             isFilterable: true,
-            OR: [{ isGlobal: true }, { categoryId }],
+            OR: [
+                { isGlobal: true }, 
+                { categoryId },
+                { categoryId: { in: Array.from(ancestorIds) }, includeSubcategories: true }
+            ],
         },
     });
 
@@ -52,6 +69,18 @@ export default async function CategoryPage({
         }
     }
 
+    // Handle Subcategory Filter
+    const rawSubCat = resolvedSearch["Alt Kategori"];
+    let targetCategoryIds = [categoryId, ...category.subcategories.map((s) => s.id)];
+
+    if (rawSubCat) {
+        const activeNames = typeof rawSubCat === "string" ? rawSubCat.split(",") : rawSubCat;
+        const matchingSubCats = category.subcategories.filter((s) => activeNames.includes(s.name));
+        if (matchingSubCats.length > 0) {
+            targetCategoryIds = matchingSubCats.map((s) => s.id);
+        }
+    }
+
     // Handle Sort
     let orderBy: any = { createdAt: "desc" };
     if (sort === "price_asc") orderBy = { price: "asc" };
@@ -60,7 +89,7 @@ export default async function CategoryPage({
     // 3. Query products
     const products = await db.product.findMany({
         where: {
-            categoryId,
+            categoryId: { in: targetCategoryIds },
             AND: filterConditions.length > 0 ? filterConditions : undefined,
         },
         include: {
@@ -77,12 +106,13 @@ export default async function CategoryPage({
 
     const totalProducts = await db.product.count({
         where: {
-            categoryId,
+            categoryId: { in: targetCategoryIds },
             AND: filterConditions.length > 0 ? filterConditions : undefined,
         },
     });
 
-    const hasNextPage = totalProducts > page * 12;
+    const totalPages = Math.ceil(totalProducts / 12);
+    const hasNextPage = page < totalPages;
 
     // 4. Fetch available distinct values for the sidebar filters
     const filterOptions = await Promise.all(
@@ -104,46 +134,55 @@ export default async function CategoryPage({
         }),
     );
 
+    if (category.subcategories.length > 0) {
+        filterOptions.unshift({
+            id: "subcategories",
+            name: "Alt Kategori",
+            options: category.subcategories.map((s) => s.name),
+        });
+    }
+
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-4 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">{category.name}</h1>
                     <p className="text-muted-foreground mt-2">{totalProducts} ürün bulundu</p>
                 </div>
-
-                {/* Sort Select */}
-                <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">Sırala:</span>
-                    <div className="relative">
-                        <Link
-                            href={`/categories/${categoryId}?sort=newest`}
-                            className="text-sm text-foreground px-2 hover:text-primary transition-colors"
-                        >
-                            En Yeniler
-                        </Link>
-                        <Link
-                            href={`/categories/${categoryId}?sort=price_asc`}
-                            className="text-sm text-foreground px-2 border-l hover:text-primary transition-colors"
-                        >
-                            Fiyat (Artan)
-                        </Link>
-                        <Link
-                            href={`/categories/${categoryId}?sort=price_desc`}
-                            className="text-sm text-foreground px-2 border-l hover:text-primary transition-colors"
-                        >
-                            Fiyat (Azalan)
-                        </Link>
-                    </div>
-                </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-10">
-                <aside className="w-full lg:w-64 shrink-0">
+            {/* Subcategories Bar */}
+            {category.subcategories.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+                    {category.subcategories.map((sub) => (
+                        <Link
+                            key={sub.id}
+                            href={`/categories/${sub.id}`}
+                            className="px-5 py-2 bg-secondary/60 hover:bg-secondary rounded-full text-sm font-medium transition-colors whitespace-nowrap text-foreground"
+                        >
+                            {sub.name}
+                        </Link>
+                    ))}
+                </div>
+            )}
+
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+                {/* Mobile Filter & Sort Buttons */}
+                <div className="flex items-center gap-3 lg:hidden">
+                    <div className="flex-1">
+                        <MobileFilter filterableFields={filterOptions} />
+                    </div>
+                    <SortDropdown />
+                </div>
+
+                <aside className="hidden lg:block w-64 shrink-0">
                     <SidebarFilter filterableFields={filterOptions} />
                 </aside>
 
                 <main className="flex-1">
+                    <div className="hidden lg:flex justify-end mb-6">
+                        <SortDropdown />
+                    </div>
                     {products.length === 0 ? (
                         <div className="text-center py-20 bg-muted/50 border rounded-xl">
                             <h3 className="text-xl font-medium mb-2 text-foreground">Ürün Bulunamadı</h3>
@@ -157,11 +196,10 @@ export default async function CategoryPage({
                                 <Link key={product.id} href={`/products/${product.id}`} className="group block">
                                     <div className="aspect-[4/5] relative rounded-xl overflow-hidden bg-card border group-hover:border-primary/50 transition-colors">
                                         {product.fields[0]?.stringValue ? (
-                                            <Image
+                                            <ImageWithSpinner
                                                 src={product.fields[0].stringValue}
                                                 alt={product.name}
-                                                fill
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
@@ -183,26 +221,9 @@ export default async function CategoryPage({
                     )}
 
                     {/* Pagination */}
-                    {(page > 1 || hasNextPage) && (
-                        <div className="mt-12 flex items-center justify-center space-x-4 border-t pt-8">
-                            {page > 1 && (
-                                <Link
-                                    href={`/categories/${categoryId}?page=${page - 1}`}
-                                    className="px-4 py-2 text-sm font-medium rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors"
-                                >
-                                    Önceki Sayfa
-                                </Link>
-                            )}
-                            {hasNextPage && (
-                                <Link
-                                    href={`/categories/${categoryId}?page=${page + 1}`}
-                                    className="px-4 py-2 text-sm font-medium rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-sm"
-                                >
-                                    Sonraki Sayfa
-                                </Link>
-                            )}
-                        </div>
-                    )}
+                    <div className="mt-12 border-t pt-8">
+                        <ShopPagination page={page} totalPages={totalPages} />
+                    </div>
                 </main>
             </div>
         </div>

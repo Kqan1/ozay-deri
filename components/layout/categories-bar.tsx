@@ -11,7 +11,7 @@ export default async function CategoriesBar() {
 
     return (
         <div className="w-full border-b bg-card shadow-sm">
-            <div className="mx-auto flex items-center overflow-x-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 gap-6 scrollbar-hide [justify-content:safe_center]">
+            <div className="mx-auto flex items-center overflow-x-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-10 scrollbar-hide justify-center-safe">
                 <Link
                     href="/"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
@@ -27,6 +27,12 @@ export default async function CategoriesBar() {
                         {category.name}
                     </Link>
                 ))}
+                <Link
+                    href="/contact"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
+                >
+                    İletişim
+                </Link>
             </div>
         </div>
     );

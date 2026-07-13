@@ -20,7 +20,7 @@ export default function FieldsAdminPage() {
     const [isGlobal, setIsGlobal] = useState("true");
     const [categoryId, setCategoryId] = useState("");
     const [isFilterable, setIsFilterable] = useState(false);
-    const [isSortable, setIsSortable] = useState(false);
+    const [includeSubcategories, setIncludeSubcategories] = useState(true);
     const [isSearchable, setIsSearchable] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -50,7 +50,7 @@ export default function FieldsAdminPage() {
         formData.append("isGlobal", isGlobal);
         if (categoryId) formData.append("categoryId", categoryId);
         if (isFilterable) formData.append("isFilterable", "on");
-        if (isSortable) formData.append("isSortable", "on");
+        if (includeSubcategories) formData.append("includeSubcategories", "on");
         if (isSearchable) formData.append("isSearchable", "on");
 
         await createFieldDefinition(formData);
@@ -68,7 +68,7 @@ export default function FieldsAdminPage() {
         setIsGlobal(field.isGlobal ? "true" : "false");
         setCategoryId(field.categoryId || "");
         setIsFilterable(field.isFilterable);
-        setIsSortable(field.isSortable);
+        setIncludeSubcategories(field.includeSubcategories !== false);
         setIsSearchable(field.isSearchable);
     }
 
@@ -79,7 +79,7 @@ export default function FieldsAdminPage() {
         setIsGlobal("true");
         setCategoryId("");
         setIsFilterable(false);
-        setIsSortable(false);
+        setIncludeSubcategories(true);
         setIsSearchable(false);
     }
 
@@ -181,15 +181,17 @@ export default function FieldsAdminPage() {
                                 />
                                 <span className="text-sm font-medium">Filtrelenebilir (Menüde birebir eşleşme)</span>
                             </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={isSortable}
-                                    onChange={(e) => setIsSortable(e.target.checked)}
-                                    className="rounded border-gray-300 cursor-pointer"
-                                />
-                                <span className="text-sm font-medium">Sıralanabilir</span>
-                            </label>
+                            {isGlobal === "false" && (
+                                <label className="flex items-center space-x-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeSubcategories}
+                                        onChange={(e) => setIncludeSubcategories(e.target.checked)}
+                                        className="rounded border-gray-300 cursor-pointer"
+                                    />
+                                    <span className="text-sm font-medium">Alt Kategorilere de Uygula</span>
+                                </label>
+                            )}
                             <label className="flex items-center space-x-2 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -245,9 +247,9 @@ export default function FieldsAdminPage() {
                                                     Filtrelenebilir
                                                 </span>
                                             )}
-                                            {f.isSortable && (
+                                            {f.includeSubcategories && !f.isGlobal && (
                                                 <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 rounded text-xs">
-                                                    Sıralanabilir
+                                                    Alt Kategoriler Dahil
                                                 </span>
                                             )}
                                             {f.isSearchable && (

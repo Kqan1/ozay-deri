@@ -10,7 +10,7 @@ export async function createFieldDefinition(formData: FormData) {
     const isGlobal = formData.get("isGlobal") === "true";
     const categoryId = formData.get("categoryId") as string | null;
     const isFilterable = formData.get("isFilterable") === "on";
-    const isSortable = formData.get("isSortable") === "on";
+    const includeSubcategories = formData.get("includeSubcategories") === "on";
     const isSearchable = formData.get("isSearchable") === "on";
 
     if (!name || !type) return { error: "Name and type are required" };
@@ -22,7 +22,7 @@ export async function createFieldDefinition(formData: FormData) {
             isGlobal,
             categoryId: isGlobal ? null : categoryId || null,
             isFilterable,
-            isSortable,
+            includeSubcategories: isGlobal ? true : includeSubcategories,
             isSearchable,
         };
 

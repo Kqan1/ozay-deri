@@ -104,7 +104,7 @@ model FieldDefinition {
   category     Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   
   isFilterable Boolean   @default(false)
-  isSortable   Boolean   @default(false)
+  includeSubcategories Boolean @default(true)
   isSearchable Boolean   @default(false)
 
   createdAt    DateTime  @default(now())

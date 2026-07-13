@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, Suspense } from "react";
 
 interface FilterOption {
     id: string;
@@ -10,7 +10,7 @@ interface FilterOption {
     options: string[];
 }
 
-export default function SidebarFilter({
+function SidebarFilterContent({
     filterableFields,
     categories = [],
 }: {
@@ -57,21 +57,35 @@ export default function SidebarFilter({
     };
 
     const hasAnyFilter = Array.from(searchParams.keys()).some((k) => k !== "sort" && k !== "page" && k !== "q");
+    const activeFilterableFields = filterableFields.filter((f) => f.options.length > 0);
+
+    if (categories.length === 0 && activeFilterableFields.length === 0) {
+        return (
+            <div className="flex flex-col gap-6 relative">
+                <div className="flex items-center justify-between border-b pb-3">
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-base font-semibold text-foreground">Filtreler</h3>
+                        {isPending && <Loader2 className="animate-spin text-muted-foreground w-4 h-4" />}
+                    </div>
+                </div>
+                <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg border border-border/50 text-center">
+                    Seçilebilecek uygun filtre bulunmuyor.
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-8 relative">
-            {isPending && (
-                <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-xl">
-                    <Loader2 className="animate-spin text-white w-6 h-6" />
+        <div className="flex flex-col gap-6 relative">
+            <div className="flex items-center justify-between border-b pb-3">
+                <div className="flex items-center gap-2">
+                    <h3 className="text-base font-semibold text-foreground">Filtreler</h3>
+                    {isPending && <Loader2 className="animate-spin text-muted-foreground w-4 h-4" />}
                 </div>
-            )}
-
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <h3 className="text-lg font-semibold">Filtreler</h3>
                 {hasAnyFilter && (
                     <button
                         onClick={handleClear}
-                        className="text-xs text-rose-400 flex items-center hover:text-rose-300 transition-colors"
+                        className="text-xs text-destructive hover:text-destructive/80 hover:underline cursor-pointer transition-colors"
                     >
                         Temizle
                     </button>
@@ -79,9 +93,9 @@ export default function SidebarFilter({
             </div>
 
             {categories.length > 0 && (
-                <div className="space-y-4">
-                    <h4 className="font-medium text-sm text-neutral-200">Kategoriler</h4>
-                    <div className="space-y-3 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                <div className="flex flex-col gap-3">
+                    <h4 className="font-medium text-sm text-foreground">Kategoriler</h4>
+                    <div className="flex flex-col gap-2.5 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20">
                         {categories
                             .filter((c) => !c.parentId)
                             .map((cat) => {
@@ -93,11 +107,11 @@ export default function SidebarFilter({
                                         className="flex items-center space-x-3 cursor-pointer group select-none"
                                     >
                                         <div
-                                            className={`w-4 h-4 flex items-center justify-center rounded border transition-colors ${isChecked ? "bg-indigo-600 border-indigo-600" : "border-neutral-500 group-hover:border-neutral-400"}`}
+                                            className={`w-4 h-4 flex items-center justify-center rounded border transition-colors ${isChecked ? "bg-primary border-primary" : "border-input group-hover:border-primary/50"}`}
                                         >
                                             {isChecked && (
                                                 <svg
-                                                    className="w-3 h-3 text-white"
+                                                    className="w-3 h-3 text-primary-foreground"
                                                     fill="none"
                                                     viewBox="0 0 24 24"
                                                     stroke="currentColor"
@@ -118,7 +132,7 @@ export default function SidebarFilter({
                                             onChange={(e) => handleFilterChange("category", cat.id, e.target.checked)}
                                         />
                                         <span
-                                            className={`text-sm transition-colors ${isChecked ? "text-white font-medium" : "text-neutral-400 group-hover:text-neutral-300"}`}
+                                            className={`text-sm transition-colors ${isChecked ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}`}
                                         >
                                             {cat.name}
                                         </span>
@@ -135,9 +149,9 @@ export default function SidebarFilter({
                 const activeValues = searchParams.get(field.name)?.split(",") || [];
 
                 return (
-                    <div key={field.id} className="space-y-4">
-                        <h4 className="font-medium text-sm text-neutral-200">{field.name}</h4>
-                        <div className="space-y-3">
+                    <div key={field.id} className="flex flex-col gap-3">
+                        <h4 className="font-medium text-sm text-foreground">{field.name}</h4>
+                        <div className="flex flex-col gap-2.5 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20">
                             {field.options.map((opt) => {
                                 const isChecked = activeValues.includes(opt);
                                 return (
@@ -146,11 +160,11 @@ export default function SidebarFilter({
                                         className="flex items-center space-x-3 cursor-pointer group select-none"
                                     >
                                         <div
-                                            className={`w-4 h-4 flex items-center justify-center rounded border transition-colors ${isChecked ? "bg-indigo-600 border-indigo-600" : "border-neutral-500 group-hover:border-neutral-400"}`}
+                                            className={`w-4 h-4 flex items-center justify-center rounded border transition-colors ${isChecked ? "bg-primary border-primary" : "border-input group-hover:border-primary/50"}`}
                                         >
                                             {isChecked && (
                                                 <svg
-                                                    className="w-3 h-3 text-white"
+                                                    className="w-3 h-3 text-primary-foreground"
                                                     fill="none"
                                                     viewBox="0 0 24 24"
                                                     stroke="currentColor"
@@ -171,7 +185,7 @@ export default function SidebarFilter({
                                             onChange={(e) => handleFilterChange(field.name, opt, e.target.checked)}
                                         />
                                         <span
-                                            className={`text-sm transition-colors ${isChecked ? "text-white font-medium" : "text-neutral-400 group-hover:text-neutral-300"}`}
+                                            className={`text-sm transition-colors ${isChecked ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}`}
                                         >
                                             {opt}
                                         </span>
@@ -183,5 +197,28 @@ export default function SidebarFilter({
                 );
             })}
         </div>
+    );
+}
+
+export default function SidebarFilter({
+    filterableFields,
+    categories = [],
+}: {
+    filterableFields: FilterOption[];
+    categories?: any[];
+}) {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between border-b pb-3">
+                        <h3 className="text-base font-semibold text-foreground">Filtreler</h3>
+                        <Loader2 className="animate-spin text-muted-foreground w-4 h-4" />
+                    </div>
+                </div>
+            }
+        >
+            <SidebarFilterContent filterableFields={filterableFields} categories={categories} />
+        </Suspense>
     );
 }
