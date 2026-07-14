@@ -1,8 +1,8 @@
 import "./../globals.css";
+import Link from "next/link";
 import Providers from "@/components/providers/providers";
 import { cn } from "@/lib/utils";
 import { fontSans } from "@/utils/fonts";
-import Link from "next/link";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -15,11 +15,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                     <div className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-muted/30">
                         {/* Logo Link to Home */}
                         <div className="mb-8">
-                            <Link href="/" className="text-3xl font-bold tracking-tight hover:opacity-80 transition-opacity">
+                            <Link
+                                href="/"
+                                className="text-3xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+                            >
                                 Özay Deri
                             </Link>
                         </div>
-                        
+
                         {/* Page content wrapper */}
                         <div className="w-full max-w-md">{children}</div>
                     </div>

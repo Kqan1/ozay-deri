@@ -1,14 +1,10 @@
 import { ChevronRight } from "lucide-react";
-import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 import Link from "next/link";
+import ProductCatalogLayout from "@/components/shop/product-catalog-layout";
 import { logEmptySearch } from "@/app/actions/search-actions";
 import { Prisma } from "@/app/generated/prisma/client";
-import SidebarFilter from "@/components/shop/sidebar-filter";
-import MobileFilter from "@/components/shop/mobile-filter";
-import SortDropdown from "@/components/shop/sort-dropdown";
-import ProductGridLayout from "@/components/shop/product-grid-layout";
-import ShopPagination from "@/components/shop/shop-pagination";
 import db from "@/lib/db";
+import { getFilterOptions, buildRawFilterConditions } from "@/lib/services/product-service";
 
 export default async function SearchPage({
     searchParams,
@@ -20,7 +16,6 @@ export default async function SearchPage({
     const page = Number(resolvedParams.page) || 1;
     const categoryParam = resolvedParams.category as string | undefined;
     const sortParam = resolvedParams.sort as string | undefined;
-    const gridParam = resolvedParams.grid as string | undefined;
     const categoryIds = categoryParam ? categoryParam.split(",") : [];
 
     if (!q) {
@@ -73,21 +68,8 @@ export default async function SearchPage({
         }
     }
 
-    // 3. Construct raw query safely using Prisma.sql
-    let filterConditions = Prisma.empty;
-    const filterKeys = Object.keys(activeFilters);
-    if (filterKeys.length > 0) {
-        const conditions = filterKeys.map((key) => {
-            const values = activeFilters[key];
-            return Prisma.sql`EXISTS (
-        SELECT 1 FROM "ProductField" pf 
-        WHERE pf."productId" = p.id 
-          AND pf.name = ${key} 
-          AND pf."stringValue" = ANY(ARRAY[${Prisma.join(values)}]::text[])
-      )`;
-        });
-        filterConditions = Prisma.sql`AND ${Prisma.join(conditions, " AND ")}`;
-    }
+    // 3. Construct raw query safely using service
+    let { filterConditions, filterKeys } = buildRawFilterConditions(activeFilters);
 
     if (categoryIds.length > 0) {
         const catCond = Prisma.sql`(p."categoryId" = ANY(ARRAY[${Prisma.join(categoryIds)}]::text[]) OR c."parentId" = ANY(ARRAY[${Prisma.join(categoryIds)}]::text[]))`;
@@ -144,39 +126,13 @@ export default async function SearchPage({
 
     const results = (await db.$queryRaw(query)) as any[];
 
-    console.log(`\n[Detailed Search] Query: "${q}"`);
-    if (filterKeys.length > 0) console.log(`Filters:`, activeFilters);
-    console.log(
-        `Results:`,
-        results.map((r) => ({ name: r.name, simScore: r.simScore })),
-    );
-
     if (results.length === 0 && page === 1 && filterKeys.length === 0) {
         await logEmptySearch(q);
     }
 
     // 4. Fetch possible values for filterable fields for Sidebar
-    const filterOptions = await Promise.all(
-        filterableFields.map(async (field) => {
-            const distinctValues = await db.productField.findMany({
-                where: { name: field.name, stringValue: { not: null } },
-                distinct: ["stringValue"],
-                select: { stringValue: true },
-            });
-            return {
-                ...field,
-                options: distinctValues.map((v) => v.stringValue).filter(Boolean) as string[],
-            };
-        }),
-    );
+    const filterOptions = await getFilterOptions(filterableFields);
 
-    const searchCondition = {
-        OR: [
-            { name: { contains: q, mode: 'insensitive' as const } },
-            { category: { name: { contains: q, mode: 'insensitive' as const } } }
-        ]
-    };
-    
     const countResult = await db.$queryRaw<{ count: string }[]>(Prisma.sql`
         SELECT COUNT(*)::text as count
         FROM "Product" p
@@ -199,43 +155,24 @@ export default async function SearchPage({
     }));
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center text-sm text-muted-foreground space-x-2">
-                <Link href="/" className="hover:text-foreground transition-colors">
-                    Ana Sayfa
-                </Link>
-                <ChevronRight size={14} />
-                <span className="text-foreground">"{q}" için sonuçlar</span>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-                {/* Mobile Filter & Sort Buttons */}
-                <div className="flex items-center gap-3 lg:hidden">
-                    <div className="flex-1">
-                        <MobileFilter filterableFields={filterOptions} categories={categories} />
-                    </div>
-                    <SortDropdown />
+        <ProductCatalogLayout
+            totalCount={totalCount}
+            page={page}
+            totalPages={totalPages}
+            products={standardProducts}
+            filterOptions={filterOptions}
+            categories={categories}
+            emptyMessage="Sonuç Bulunamadı"
+            emptyDescription={`"${q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen farklı kelimelerle veya filtreleri temizleyerek tekrar deneyin.`}
+            headerChildren={
+                <div className="flex items-center text-sm text-muted-foreground space-x-2">
+                    <Link href="/" className="hover:text-foreground transition-colors">
+                        Ana Sayfa
+                    </Link>
+                    <ChevronRight size={14} />
+                    <span className="text-foreground">&quot;{q}&quot; için sonuçlar</span>
                 </div>
-
-                {/* Left Sidebar (Filters) for Desktop */}
-                <aside className="hidden lg:block w-64 shrink-0">
-                    <SidebarFilter filterableFields={filterOptions} categories={categories} />
-                </aside>
-
-                {/* Main Content (Results) */}
-                <ProductGridLayout 
-                    products={standardProducts}
-                    totalCount={totalCount}
-                    sortDropdown={<SortDropdown />}
-                    emptyMessage="Sonuç Bulunamadı"
-                    emptyDescription={`"${q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen farklı kelimelerle veya filtreleri temizleyerek tekrar deneyin.`}
-                />
-            </div>
-
-            {/* Pagination */}
-            <div className="mt-12 border-t pt-8">
-                <ShopPagination page={page} totalPages={totalPages} />
-            </div>
-        </div>
+            }
+        />
     );
 }

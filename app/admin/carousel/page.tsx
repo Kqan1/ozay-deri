@@ -1,42 +1,65 @@
 "use client";
 
+import {
+    ArrowDown,
+    ArrowRight,
+    ChevronDown,
+    ChevronUp,
+    ExternalLink,
+    Eye,
+    EyeOff,
+    Gift,
+    Heart,
+    Image as ImageIcon,
+    Info,
+    Loader2,
+    Mail,
+    Pencil,
+    Percent,
+    Phone,
+    Play,
+    Plus,
+    Search,
+    ShoppingBag,
+    ShoppingCart,
+    Star,
+    Tag,
+    Trash2,
+    X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { 
-    Eye, EyeOff, Image as ImageIcon, Pencil, Trash2, Plus, ChevronUp, ChevronDown, Check, X, Loader2,
-    ShoppingBag, ShoppingCart, ArrowRight, ArrowDown, Star, 
-    Tag, Search, Phone, Mail, Info, Play, ExternalLink, Heart, 
-    Gift, Percent
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { type CarouselSlideData, HeroCarousel } from "@/components/shop/hero-carousel";
 import { CustomUploadDropzone } from "@/components/ui/custom-upload";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
-import { HeroCarousel, type CarouselSlideData } from "@/components/shop/hero-carousel";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     createCarouselSlide,
     deleteCarouselSlide,
+    deleteUploadThingImage,
     getCarouselSlides,
     updateCarouselSlide,
     updateCarouselSlideOrder,
-    deleteUploadThingImage,
 } from "../actions";
 
 const PRESET_COLORS = [
-    "#ffffff", "#000000", "#f8fafc", "#f1f5f9", "#e2e8f0", 
-    "#cbd5e1", "#94a3b8", "#64748b", "#475569", "#334155", 
-    "#1e293b", "#0f172a", "#ef4444", "#3b82f6", "#10b981", "#f59e0b"
+    "#ffffff",
+    "#000000",
+    "#f8fafc",
+    "#f1f5f9",
+    "#e2e8f0",
+    "#cbd5e1",
+    "#94a3b8",
+    "#64748b",
+    "#475569",
+    "#334155",
+    "#1e293b",
+    "#0f172a",
+    "#ef4444",
+    "#3b82f6",
+    "#10b981",
+    "#f59e0b",
 ];
 
 const ICON_OPTIONS = [
@@ -123,12 +146,12 @@ export default function CarouselAdminPage() {
         setDescColor(slide.descColor || "#f3f4f6");
         setDescSize(slide.descSize || "text-lg sm:text-xl");
         setDescWeight(slide.descWeight || "font-normal");
-        
+
         let parsedButtons = [];
         if (slide.buttons) {
             try {
                 parsedButtons = Array.isArray(slide.buttons) ? slide.buttons : JSON.parse(slide.buttons as any);
-            } catch (e) {
+            } catch (_e) {
                 parsedButtons = [];
             }
         }
@@ -168,7 +191,7 @@ export default function CarouselAdminPage() {
             }
             resetForm();
             await loadData(false);
-        } catch (error) {
+        } catch (_error) {
             toast.error("Bir hata oluştu.");
         } finally {
             setIsSubmitting(false);
@@ -187,7 +210,7 @@ export default function CarouselAdminPage() {
                         toast.success("Slayt silindi.");
                         if (editSlideId === id) resetForm();
                         await loadData(false); // Re-fetch to sync
-                    } catch (error) {
+                    } catch (_error) {
                         toast.error("Silme işlemi başarısız oldu.");
                     } finally {
                         setDeletingId(null);
@@ -208,7 +231,7 @@ export default function CarouselAdminPage() {
             });
             // Re-fetch quietly to sync
             await loadData(false);
-        } catch (error) {
+        } catch (_error) {
             toast.error("Durum güncellenirken hata oluştu.");
         } finally {
             setTogglingId(null);
@@ -229,7 +252,7 @@ export default function CarouselAdminPage() {
 
         const newSlides = [...slides];
         const targetIndex = direction === "up" ? index - 1 : index + 1;
-        
+
         // Swap elements
         const temp = newSlides[index];
         newSlides[index] = newSlides[targetIndex];
@@ -239,10 +262,10 @@ export default function CarouselAdminPage() {
         const updates = newSlides.map((s, i) => ({ id: s.id, order: i }));
         const originalSlides = [...slides];
         setSlides(newSlides); // optimistic update
-        
+
         try {
             await updateCarouselSlideOrder(updates);
-        } catch (error) {
+        } catch (_error) {
             setSlides(originalSlides);
             toast.error("Sıralama güncellenirken hata oluştu.");
         }
@@ -273,7 +296,10 @@ export default function CarouselAdminPage() {
         descColor,
         descSize,
         descWeight,
-        buttons: buttons.length > 0 ? buttons : [{ text: "Örnek Buton", link: "#", variant: "default", icon: "ShoppingBag" }],
+        buttons:
+            buttons.length > 0
+                ? buttons
+                : [{ text: "Örnek Buton", link: "#", variant: "default", icon: "ShoppingBag" }],
         isActive: true,
         order: 0,
     };
@@ -481,7 +507,7 @@ export default function CarouselAdminPage() {
                                         <Plus className="w-3.5 h-3.5" /> Buton Ekle
                                     </button>
                                 </div>
-                                
+
                                 {buttons.map((btn, index) => (
                                     <div key={index} className="space-y-3 p-3 border rounded-md bg-muted/30 relative">
                                         <button
@@ -491,7 +517,7 @@ export default function CarouselAdminPage() {
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
-                                        
+
                                         <div className="space-y-1.5 pr-6">
                                             <label className="text-xs text-muted-foreground">Buton Metni</label>
                                             <input
@@ -512,8 +538,9 @@ export default function CarouselAdminPage() {
                                                 placeholder="Örn: /search?q=canta"
                                             />
                                             <p className="text-[11px] text-muted-foreground">
-                                                * Site içi linkler için <b>/kategori-adi</b>, dış siteler için <b>https://...</b> kullanın. <br/>
-                                                * Arama sayfasına gitmesi için <b>/search?q=aranacak-kelime</b> kullanın.
+                                                * Site içi linkler için <b>/kategori-adi</b>, dış siteler için{" "}
+                                                <b>https://...</b> kullanın. <br />* Arama sayfasına gitmesi için{" "}
+                                                <b>/search?q=aranacak-kelime</b> kullanın.
                                             </p>
                                         </div>
                                         <div className="space-y-1.5">
@@ -531,7 +558,10 @@ export default function CarouselAdminPage() {
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-xs text-muted-foreground">İkon Seçimi</label>
-                                            <Select value={btn.icon || "ShoppingBag"} onValueChange={(val) => updateButton(index, "icon", val)}>
+                                            <Select
+                                                value={btn.icon || "ShoppingBag"}
+                                                onValueChange={(val) => updateButton(index, "icon", val)}
+                                            >
                                                 <SelectTrigger className="h-8">
                                                     <SelectValue placeholder="İkon seçin" />
                                                 </SelectTrigger>
@@ -569,7 +599,11 @@ export default function CarouselAdminPage() {
                                 disabled={isUploading || isSubmitting}
                                 className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full mt-4"
                             >
-                                {isSubmitting ? "Kaydediliyor..." : editSlideId ? "Değişiklikleri Kaydet" : "Slayt Ekle"}
+                                {isSubmitting
+                                    ? "Kaydediliyor..."
+                                    : editSlideId
+                                      ? "Değişiklikleri Kaydet"
+                                      : "Slayt Ekle"}
                             </button>
                         </form>
                     </div>
@@ -621,12 +655,15 @@ export default function CarouselAdminPage() {
                                             </button>
                                         </div>
 
-                                        <div 
+                                        <div
                                             className="w-24 h-16 shrink-0 rounded overflow-hidden bg-muted border cursor-pointer hover:opacity-80 transition-opacity"
                                             onClick={() => setPreviewSlideId(slide.id)}
                                             title="Slaytı Önizle"
                                         >
-                                            <ImageWithSpinner src={slide.image} className="w-full h-full object-cover" />
+                                            <ImageWithSpinner
+                                                src={slide.image}
+                                                className="w-full h-full object-cover"
+                                            />
                                         </div>
 
                                         <div className="flex-1 min-w-0">
@@ -646,9 +683,13 @@ export default function CarouselAdminPage() {
                                                 {togglingId === slide.id ? (
                                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                 ) : slide.isActive ? (
-                                                    <><Eye className="w-3.5 h-3.5" /> Görünür</>
+                                                    <>
+                                                        <Eye className="w-3.5 h-3.5" /> Görünür
+                                                    </>
                                                 ) : (
-                                                    <><EyeOff className="w-3.5 h-3.5 text-muted-foreground" /> Gizli</>
+                                                    <>
+                                                        <EyeOff className="w-3.5 h-3.5 text-muted-foreground" /> Gizli
+                                                    </>
                                                 )}
                                             </button>
                                             <button
@@ -665,7 +706,9 @@ export default function CarouselAdminPage() {
                                                 {deletingId === slide.id ? (
                                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                 ) : (
-                                                    <><Trash2 className="w-3.5 h-3.5" /> Sil</>
+                                                    <>
+                                                        <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                    </>
                                                 )}
                                             </button>
                                         </div>
@@ -682,17 +725,21 @@ export default function CarouselAdminPage() {
                     <DialogHeader className="sr-only">
                         <DialogTitle>Slayt Önizleme</DialogTitle>
                     </DialogHeader>
-                    {previewSlideId && (
-                        <div className="w-full h-full relative">
-                            <HeroCarousel slides={[slides.find(s => s.id === previewSlideId)!]} />
-                            <button
-                                onClick={() => setPreviewSlideId(null)}
-                                className="absolute top-4 right-4 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 backdrop-blur-md"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                    )}
+                    {(() => {
+                        const slide = slides.find((s) => s.id === previewSlideId);
+                        if (!slide) return null;
+                        return (
+                            <div className="w-full h-full relative">
+                                <HeroCarousel slides={[slide]} />
+                                <button
+                                    onClick={() => setPreviewSlideId(null)}
+                                    className="absolute top-4 right-4 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 backdrop-blur-md"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        );
+                    })()}
                 </DialogContent>
             </Dialog>
         </div>

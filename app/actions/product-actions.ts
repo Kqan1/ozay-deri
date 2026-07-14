@@ -10,10 +10,10 @@ export async function getProductById(id: string) {
             where: { id },
             include: {
                 category: {
-                    select: { name: true, id: true }
+                    select: { name: true, id: true },
                 },
-                fields: true
-            }
+                fields: true,
+            },
         });
 
         return product;

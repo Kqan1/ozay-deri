@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function ImageWithSpinner({ src, alt, className }: { src: string; alt?: string; className?: string }) {
     const [isLoading, setIsLoading] = useState(true);

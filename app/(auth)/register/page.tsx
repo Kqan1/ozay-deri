@@ -7,8 +7,8 @@ import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { registerUser } from "@/app/actions/auth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -69,14 +69,15 @@ export default function RegisterPage() {
         <Card className="w-full">
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Yeni bir hesap oluşturun</CardTitle>
-                <CardDescription>
-                    Aramıza katılmak için bilgilerinizi giriniz
-                </CardDescription>
+                <CardDescription>Aramıza katılmak için bilgilerinizi giriniz</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <label
+                            htmlFor="username"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
                             Kullanıcı Adı
                         </label>
                         <div className="relative">
@@ -98,7 +99,10 @@ export default function RegisterPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <label
+                            htmlFor="password"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
                             Şifre
                         </label>
                         <div className="relative">
@@ -127,7 +131,10 @@ export default function RegisterPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="confirmPassword" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <label
+                            htmlFor="confirmPassword"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
                             Şifre Tekrarı
                         </label>
                         <div className="relative">

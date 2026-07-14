@@ -133,7 +133,7 @@
         scrollbar-width: auto;
         scrollbar-color: color-mix(in srgb, var(--foreground) 35%, transparent) transparent;
     }
-    
+
     /* Chrome, Edge, and Safari Custom Scrollbar */
     ::-webkit-scrollbar {
         width: 16px;
@@ -155,7 +155,7 @@
     }
 
     body[data-scroll-locked] {
-        margin-right: 0px !important;
-        overflow: visible !important;
+        margin-right: 0px;
+        overflow: visible;
     }
 }

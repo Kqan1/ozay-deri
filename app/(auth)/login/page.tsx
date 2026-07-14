@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import React, { Suspense, useState } from "react";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 function LoginForm() {
     const router = useRouter();
@@ -72,14 +72,15 @@ function LoginForm() {
         <Card className="w-full">
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Hesabınıza giriş yapın</CardTitle>
-                <CardDescription>
-                    Devam etmek için bilgilerinizi giriniz
-                </CardDescription>
+                <CardDescription>Devam etmek için bilgilerinizi giriniz</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <label
+                            htmlFor="username"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
                             Kullanıcı Adı
                         </label>
                         <div className="relative">
@@ -102,7 +103,10 @@ function LoginForm() {
 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            <label
+                                htmlFor="password"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
                                 Şifre
                             </label>
                         </div>
@@ -152,11 +156,13 @@ function LoginForm() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={
-            <div className="flex justify-center p-8">
-                <Loader2 size={24} className="animate-spin text-primary" />
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="flex justify-center p-8">
+                    <Loader2 size={24} className="animate-spin text-primary" />
+                </div>
+            }
+        >
             <LoginForm />
         </Suspense>
     );

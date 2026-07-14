@@ -1,9 +1,9 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition, Suspense } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowDownUp } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useTransition } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type SortOption = {
     value: string;
@@ -62,11 +62,13 @@ function SortDropdownContent({ options }: { options: SortOption[] }) {
 
 export default function SortDropdown({ options = DEFAULT_OPTIONS }: { options?: SortOption[] }) {
     return (
-        <Suspense fallback={
-            <div className="flex-1 lg:flex-none">
-                <div className="w-full lg:w-[200px] h-10 border rounded-md bg-muted/20 animate-pulse" />
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="flex-1 lg:flex-none">
+                    <div className="w-full lg:w-[200px] h-10 border rounded-md bg-muted/20 animate-pulse" />
+                </div>
+            }
+        >
             <SortDropdownContent options={options} />
         </Suspense>
     );

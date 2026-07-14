@@ -2,7 +2,7 @@
 
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import SidebarFilter from "./sidebar-filter";
 
 interface FilterOption {
@@ -27,7 +27,9 @@ export default function MobileFilter({
             </SheetTrigger>
             <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto px-4 py-6">
                 <SheetTitle className="hidden">Filtreler</SheetTitle>
-                <SheetDescription className="hidden">Arama sonuçlarını daraltmak için filtreleri kullanın.</SheetDescription>
+                <SheetDescription className="hidden">
+                    Arama sonuçlarını daraltmak için filtreleri kullanın.
+                </SheetDescription>
                 <SidebarFilter filterableFields={filterableFields} categories={categories} />
             </SheetContent>
         </Sheet>

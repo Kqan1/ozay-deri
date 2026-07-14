@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import SidebarFilter from "@/components/shop/sidebar-filter";
-import MobileFilter from "@/components/shop/mobile-filter";
-import SortDropdown from "@/components/shop/sort-dropdown";
-import ProductGridLayout from "@/components/shop/product-grid-layout";
-import ShopPagination from "@/components/shop/shop-pagination";
-import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
+import ProductCatalogLayout from "@/components/shop/product-catalog-layout";
 import db from "@/lib/db";
+import { getFilterOptions, buildFilterConditions } from "@/lib/services/product-service";
 
 export default async function CategoryPage({
     params,
@@ -21,7 +17,6 @@ export default async function CategoryPage({
     const categoryId = resolvedParams.categoryId;
     const page = Number(resolvedSearch.page) || 1;
     const sort = resolvedSearch.sort as string;
-    const gridParam = resolvedSearch.grid as string || "4";
 
     const category = await db.category.findUnique({
         where: { id: categoryId },
@@ -53,23 +48,8 @@ export default async function CategoryPage({
         },
     });
 
-    // 2. Build dynamic where conditions using Prisma ORM
-    const filterConditions: any[] = [];
-
-    for (const field of filterableFields) {
-        const rawVal = resolvedSearch[field.name];
-        if (rawVal) {
-            const activeValues = typeof rawVal === "string" ? rawVal.split(",") : rawVal;
-            filterConditions.push({
-                fields: {
-                    some: {
-                        name: field.name,
-                        stringValue: { in: activeValues },
-                    },
-                },
-            });
-        }
-    }
+    // 2. Build dynamic where conditions using service
+    const filterConditions = buildFilterConditions(filterableFields, resolvedSearch);
 
     // Handle Subcategory Filter
     const rawSubCat = resolvedSearch["Alt Kategori"];
@@ -116,24 +96,7 @@ export default async function CategoryPage({
     const totalPages = Math.ceil(totalProducts / 12);
 
     // 4. Fetch available distinct values for the sidebar filters
-    const filterOptions = await Promise.all(
-        filterableFields.map(async (field) => {
-            const distinctValues = await db.productField.findMany({
-                where: {
-                    name: field.name,
-                    stringValue: { not: null },
-                    product: { categoryId },
-                },
-                distinct: ["stringValue"],
-                select: { stringValue: true },
-            });
-            return {
-                id: field.id,
-                name: field.name,
-                options: distinctValues.map((v) => v.stringValue).filter(Boolean) as string[],
-            };
-        }),
-    );
+    const filterOptions = await getFilterOptions(filterableFields, categoryId);
 
     if (category.subcategories.length > 0) {
         filterOptions.unshift({
@@ -151,58 +114,32 @@ export default async function CategoryPage({
     }));
 
     return (
-        <div className="flex flex-col gap-4 md:gap-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{category.name}</h1>
-                    <p className="text-muted-foreground mt-2">{totalProducts} ürün bulundu</p>
-                </div>
-            </div>
-
-            {/* Subcategories Bar */}
-            {category.subcategories.length > 0 && (
-                <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground ml-1">Alt Kategoriler</h3>
-                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-4 scrollbar-hide">
-                        {category.subcategories.map((sub) => (
-                            <Link
-                                key={sub.id}
-                                href={`/categories/${sub.id}`}
-                                className="px-5 py-2 bg-secondary/60 hover:bg-secondary rounded-full text-sm font-medium transition-colors whitespace-nowrap text-foreground"
-                            >
-                                {sub.name}
-                            </Link>
-                        ))}
+        <ProductCatalogLayout
+            title={category.name}
+            subtitle={`${totalProducts} ürün bulundu`}
+            totalCount={totalProducts}
+            page={page}
+            totalPages={totalPages}
+            products={standardProducts}
+            filterOptions={filterOptions}
+            headerChildren={
+                category.subcategories.length > 0 ? (
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-muted-foreground ml-1">Alt Kategoriler</h3>
+                        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-4 scrollbar-hide">
+                            {category.subcategories.map((sub) => (
+                                <Link
+                                    key={sub.id}
+                                    href={`/categories/${sub.id}`}
+                                    className="px-5 py-2 bg-secondary/60 hover:bg-secondary rounded-full text-sm font-medium transition-colors whitespace-nowrap text-foreground"
+                                >
+                                    {sub.name}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
-
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-                {/* Mobile Filter & Sort Buttons */}
-                <div className="flex items-center gap-3 lg:hidden">
-                    <div className="flex-1">
-                        <MobileFilter filterableFields={filterOptions} />
-                    </div>
-                    <SortDropdown />
-                </div>
-
-                <aside className="hidden lg:block w-64 shrink-0">
-                    <SidebarFilter filterableFields={filterOptions} />
-                </aside>
-
-                <ProductGridLayout 
-                    products={standardProducts}
-                    totalCount={totalProducts}
-                    sortDropdown={<SortDropdown />}
-                    emptyMessage="Ürün Bulunamadı"
-                    emptyDescription="Seçtiğiniz filtrelere uygun ürün bulunmamaktadır."
-                />
-            </div>
-
-            {/* Pagination */}
-            <div className="mt-12 border-t pt-8">
-                <ShopPagination page={page} totalPages={totalPages} />
-            </div>
-        </div>
+                ) : null
+            }
+        />
     );
 }

@@ -47,11 +47,12 @@ Standart `LIKE` veya `contains` sorguları, klavye kaymaları ("deri" yerine "dr
 ## 4. Dinamik Filtreleme (Exact Match)
 
 Detaylı arama sayfasında (`/search`) yer alan sol Sidebar menüsü tamamen dinamiktir. 
+Kod tekrarlarını önlemek için kategori sayfalarıyla aynı yapı kullanılır (`lib/services/product-service.ts` ve `components/shop/product-catalog-layout.tsx`).
 
 *   Sayfa yüklendiğinde, `FieldDefinition` tablosundan `isFilterable = true` olan tüm alanlar çekilir.
-*   Her alan için `ProductField` tablosundan benzersiz (distinct) değerler toplanarak filtre seçenekleri (örn: Siyah, Beyaz, Kırmızı) oluşturulur.
+*   Her alan için `ProductField` tablosundan benzersiz (distinct) değerler toplanarak filtre seçenekleri (örn: Siyah, Beyaz, Kırmızı) oluşturulur (`getFilterOptions` servisi ile).
 *   Kullanıcı bir filtreye tıkladığında, bu değer URL'e parametre olarak eklenir (`?q=canta&Renk=Siyah`).
-*   Next.js Server Component URL parametrelerini yakalar ve raw SQL sorgusuna **kesin eşleşme** (EXISTS) koşulları olarak ekler.
+*   Next.js Server Component URL parametrelerini yakalar ve `buildRawFilterConditions` servisi ile raw SQL sorgusuna **kesin eşleşme** (EXISTS) koşulları olarak ekler.
 
 ```sql
 -- Örnek Dinamik Filtre Koşulu

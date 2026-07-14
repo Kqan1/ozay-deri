@@ -1,10 +1,20 @@
 import Link from "next/link";
-import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaWhatsapp, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import { getServerSession } from "next-auth";
+import {
+    FaEnvelope,
+    FaFacebook,
+    FaInstagram,
+    FaMapMarkerAlt,
+    FaPhoneAlt,
+    FaTwitter,
+    FaWhatsapp,
+    FaYoutube,
+} from "react-icons/fa";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { siteConfig } from "@/lib/config";
 import db from "@/lib/db";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import MapIframe from "@/components/ui/map-iframe";
 
 export default async function Footer() {
     const session = await getServerSession(authOptions);
@@ -26,7 +36,10 @@ export default async function Footer() {
                         <ul className="space-y-3">
                             {isAdmin && (
                                 <li>
-                                    <Link href="/admin" className="text-sm font-bold text-primary hover:opacity-80 transition-opacity flex items-center gap-2">
+                                    <Link
+                                        href="/admin"
+                                        className="text-sm font-bold text-primary hover:opacity-80 transition-opacity flex items-center gap-2"
+                                    >
                                         <span className="w-1 h-1 rounded-full bg-primary"></span>
                                         Admin Paneli
                                     </Link>
@@ -34,7 +47,10 @@ export default async function Footer() {
                             )}
                             {siteConfig.quickLinks.map((link, idx) => (
                                 <li key={idx}>
-                                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+                                    <Link
+                                        href={link.href}
+                                        className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                                    >
                                         <span className="w-1 h-1 rounded-full bg-primary/50"></span>
                                         {link.label}
                                     </Link>
@@ -49,7 +65,10 @@ export default async function Footer() {
                         <ul className="space-y-3">
                             {categories.map((category) => (
                                 <li key={category.id}>
-                                    <Link href={`/categories/${category.id}`} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+                                    <Link
+                                        href={`/categories/${category.id}`}
+                                        className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                                    >
                                         <span className="w-1 h-1 rounded-full bg-primary/50"></span>
                                         {category.name}
                                     </Link>
@@ -77,7 +96,11 @@ export default async function Footer() {
                                     </div>
                                     <div className="flex flex-col gap-1 pt-1">
                                         {siteConfig.contact.phones.map((phone, idx) => (
-                                            <Link key={idx} href={`tel:${phone.value}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                                            <Link
+                                                key={idx}
+                                                href={`tel:${phone.value}`}
+                                                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                                            >
                                                 {phone.label}
                                             </Link>
                                         ))}
@@ -87,18 +110,21 @@ export default async function Footer() {
                                     <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                                         <FaEnvelope className="w-4 h-4" />
                                     </div>
-                                    <Link href={`mailto:${siteConfig.contact.email}`} className="text-sm text-muted-foreground hover:text-primary transition-colors break-all">
+                                    <Link
+                                        href={`mailto:${siteConfig.contact.email}`}
+                                        className="text-sm text-muted-foreground hover:text-primary transition-colors break-all"
+                                    >
                                         {siteConfig.contact.email}
                                     </Link>
                                 </li>
                             </ul>
-                            
+
                             <div className="w-full h-48 md:h-[220px] rounded-lg overflow-hidden border bg-muted -mt-2 md:mt-0 relative group">
                                 {/* Clickable overlay to open map without trapping scroll */}
-                                <a 
-                                    href={siteConfig.contact.mapIframeUrl.replace("&output=embed", "")} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
+                                <a
+                                    href={siteConfig.contact.mapIframeUrl.replace("&output=embed", "")}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="absolute inset-0 z-10 flex items-center justify-center bg-black/10 md:bg-black/0 md:group-hover:bg-black/20 transition-all duration-300"
                                     title="Google Haritalar'da Aç"
                                 >
@@ -107,16 +133,7 @@ export default async function Footer() {
                                         Haritada Aç
                                     </div>
                                 </a>
-                                <iframe 
-                                    src={siteConfig.contact.mapIframeUrl} 
-                                    width="100%" 
-                                    height="100%" 
-                                    style={{ border: 0 }} 
-                                    allowFullScreen 
-                                    loading="lazy" 
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    className="pointer-events-none"
-                                ></iframe>
+                                <MapIframe src={siteConfig.contact.mapIframeUrl} iframeClassName="pointer-events-none" />
                             </div>
                         </div>
                     </div>
@@ -130,31 +147,56 @@ export default async function Footer() {
                             &copy; {new Date().getFullYear()} ÖZAY Deri / ÖZAY Leather Design. Tüm Hakları Saklıdır.
                         </p>
                     </div>
-                    
+
                     {/* Sosyal Medya */}
                     <div className="flex items-center justify-center gap-2 order-2">
                         {siteConfig.links.instagram && (
-                            <Link href={siteConfig.links.instagram} target="_blank" rel="noopener noreferrer" className="p-2 text-pink-600 hover:text-pink-700 dark:text-pink-500 dark:hover:text-pink-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.instagram}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-pink-600 hover:text-pink-700 dark:text-pink-500 dark:hover:text-pink-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaInstagram className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.facebook && (
-                            <Link href={siteConfig.links.facebook} target="_blank" rel="noopener noreferrer" className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.facebook}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaFacebook className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.twitter && (
-                            <Link href={siteConfig.links.twitter} target="_blank" rel="noopener noreferrer" className="p-2 text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.twitter}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaTwitter className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.youtube && (
-                            <Link href={siteConfig.links.youtube} target="_blank" rel="noopener noreferrer" className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.youtube}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaYoutube className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.whatsapp && (
-                            <Link href={siteConfig.links.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.whatsapp}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaWhatsapp className="w-5 h-5" />
                             </Link>
                         )}
@@ -162,7 +204,10 @@ export default async function Footer() {
 
                     {/* Logo */}
                     <div className="flex items-center justify-center text-sm text-muted-foreground order-1 md:order-3">
-                        <Link href="/" className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity text-foreground">
+                        <Link
+                            href="/"
+                            className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity text-foreground"
+                        >
                             Özay Deri
                         </Link>
                     </div>

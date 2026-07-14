@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings2, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Loader2, Pencil, Settings2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -94,7 +94,7 @@ export default function FieldsAdminPage() {
                         await deleteFieldDefinition(id);
                         toast.success("Alan başarıyla silindi.");
                         await loadData(false);
-                    } catch (error) {
+                    } catch (_error) {
                         toast.error("Alan silinirken hata oluştu.");
                     } finally {
                         setDeletingId(null);

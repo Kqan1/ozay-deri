@@ -1,17 +1,16 @@
 import "./../globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import CategoriesBar from "@/components/layout/categories-bar";
+import CategoriesBarWrapper from "@/components/layout/categories-bar-wrapper";
 import Footer from "@/components/layout/footer";
 import Header from "@/components/layout/header-user";
 
-import CategoriesBar from "@/components/layout/categories-bar";
-import CategoriesBarWrapper from "@/components/layout/categories-bar-wrapper";
-
 import Providers from "@/components/providers/providers";
+import GlobalProductModal from "@/components/shop/global-product-modal";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { fontSans } from "@/utils/fonts";
-import GlobalProductModal from "@/components/shop/global-product-modal";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 

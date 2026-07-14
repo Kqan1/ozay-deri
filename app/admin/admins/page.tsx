@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Shield, Trash2, Users, Loader2 } from "lucide-react";
+import { Loader2, Plus, Shield, Trash2, Users } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -75,7 +75,7 @@ export default function ManageAdminsPage() {
                                 await loadData(false);
                             }
                         }
-                    } catch (error) {
+                    } catch (_error) {
                         toast.error("Bir hata oluştu.");
                     } finally {
                         setDeletingId(null);

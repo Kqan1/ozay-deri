@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition, Suspense } from "react";
+import { Suspense, useTransition } from "react";
 
 interface FilterOption {
     id: string;
@@ -48,8 +48,8 @@ function SidebarFilterContent({
 
     const handleClear = () => {
         const params = new URLSearchParams();
-        if (searchParams.has("q")) params.set("q", searchParams.get("q")!);
-        if (searchParams.has("sort")) params.set("sort", searchParams.get("sort")!);
+        if (searchParams.has("q")) params.set("q", searchParams.get("q") || "");
+        if (searchParams.has("sort")) params.set("sort", searchParams.get("sort") || "");
 
         startTransition(() => {
             router.push(`${pathname}?${params.toString()}`, { scroll: false });

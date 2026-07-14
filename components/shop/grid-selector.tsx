@@ -1,9 +1,15 @@
 "use client";
 
-import { LayoutGrid, List, LayoutList, Grid2x2, Grid3x3 } from "lucide-react";
+import { Grid2x2, Grid3x3, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function GridSelector({ currentGrid, onChange }: { currentGrid: string, onChange: (val: string) => void }) {
+export default function GridSelector({
+    currentGrid,
+    onChange,
+}: {
+    currentGrid: string;
+    onChange: (val: string) => void;
+}) {
     const options = [
         { value: "2", icon: Grid2x2, title: "2'li Grid", hiddenOnMobile: false },
         { value: "3", icon: Grid3x3, title: "3'lü Grid", hiddenOnMobile: true },
@@ -23,7 +29,7 @@ export default function GridSelector({ currentGrid, onChange }: { currentGrid: s
                         className={cn(
                             "p-2 rounded-sm transition-all text-muted-foreground hover:text-foreground",
                             isActive && "bg-background shadow-sm text-foreground",
-                            opt.hiddenOnMobile && "hidden md:block"
+                            opt.hiddenOnMobile && "hidden md:block",
                         )}
                     >
                         <Icon className="w-4 h-4" />

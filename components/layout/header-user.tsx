@@ -1,13 +1,10 @@
-import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaWhatsapp } from "react-icons/fa";
 import Link from "next/link";
-import React from "react";
 import { getServerSession } from "next-auth";
+import { FaFacebook, FaInstagram, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import db from "@/lib/db";
-
-import { siteConfig } from "@/lib/config";
 import LiveSearch from "@/components/ui/live-search";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { siteConfig } from "@/lib/config";
+import db from "@/lib/db";
 import MobileMenu from "./mobile-menu";
 import MobileSearchButton from "./mobile-search-button";
 
@@ -22,7 +19,7 @@ export default async function HeaderUser() {
             subcategories: {
                 where: { isHidden: false },
                 orderBy: { name: "asc" },
-            }
+            },
         },
         take: 10,
     });
@@ -45,7 +42,10 @@ export default async function HeaderUser() {
                 {/* Right Side Actions */}
                 <nav className="flex items-center gap-2 sm:gap-4">
                     {isAdmin && (
-                        <Link href="/admin" className="hidden sm:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+                        <Link
+                            href="/admin"
+                            className="hidden sm:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                        >
                             Admin Paneli
                         </Link>
                     )}
@@ -53,27 +53,52 @@ export default async function HeaderUser() {
                     <MobileMenu categories={categories} isAdmin={isAdmin} />
                     <div className="hidden lg:flex items-center gap-1 sm:gap-2">
                         {siteConfig.links.instagram && (
-                            <Link href={siteConfig.links.instagram} target="_blank" rel="noopener noreferrer" className="p-2 text-pink-600 hover:text-pink-700 dark:text-pink-500 dark:hover:text-pink-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.instagram}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-pink-600 hover:text-pink-700 dark:text-pink-500 dark:hover:text-pink-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaInstagram className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.facebook && (
-                            <Link href={siteConfig.links.facebook} target="_blank" rel="noopener noreferrer" className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.facebook}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaFacebook className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.twitter && (
-                            <Link href={siteConfig.links.twitter} target="_blank" rel="noopener noreferrer" className="p-2 text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.twitter}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaTwitter className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.youtube && (
-                            <Link href={siteConfig.links.youtube} target="_blank" rel="noopener noreferrer" className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.youtube}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaYoutube className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.whatsapp && (
-                            <Link href={siteConfig.links.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors rounded-md hover:bg-muted">
+                            <Link
+                                href={siteConfig.links.whatsapp}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 transition-colors rounded-md hover:bg-muted"
+                            >
                                 <FaWhatsapp className="w-5 h-5" />
                             </Link>
                         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Folders, Globe, LayoutDashboard, LogOut, Package, Settings2, Shield, Image, ShoppingBag } from "lucide-react";
+import { Folders, Globe, Image, LayoutDashboard, LogOut, Package, Settings2, Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -12,15 +12,15 @@ export function AdminSidebar() {
     const { isOpen, setIsOpen } = useAdminMenu();
 
     const links = [
-        {   
+        {
             name: "Panel (Dashboard)",
-            href: "/admin", 
-            icon: LayoutDashboard 
+            href: "/admin",
+            icon: LayoutDashboard,
         },
-        { 
-            name: "Ürünler", 
-            href: "/admin/products", 
-            icon: Package 
+        {
+            name: "Ürünler",
+            href: "/admin/products",
+            icon: Package,
         },
         {
             name: "Kategoriler",
@@ -32,15 +32,15 @@ export function AdminSidebar() {
             href: "/admin/carousel",
             icon: Image,
         },
-        { 
-            name: "Özel Alanlar", 
-            href: "/admin/fields", 
-            icon: Settings2 
+        {
+            name: "Özel Alanlar",
+            href: "/admin/fields",
+            icon: Settings2,
         },
-        { 
-            name: "Yöneticiler", 
-            href: "/admin/admins", 
-            icon: Shield 
+        {
+            name: "Yöneticiler",
+            href: "/admin/admins",
+            icon: Shield,
         },
     ];
 

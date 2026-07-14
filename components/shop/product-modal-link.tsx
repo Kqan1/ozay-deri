@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams, usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import type { ReactNode } from "react";
 
 interface ProductModalLinkProps {
     productId: string;
@@ -18,16 +18,16 @@ export default function ProductModalLink({ productId, children, className, onCli
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         // Prevent default navigation to avoid server trip
         e.preventDefault();
-        
+
         if (onClick) {
             onClick();
         }
-        
+
         const params = new URLSearchParams(searchParams.toString());
         params.set("productId", productId);
-        
+
         // Update URL shallowly without triggering a Next.js server re-render
-        window.history.pushState(null, '', `${pathname}?${params.toString()}`);
+        window.history.pushState(null, "", `${pathname}?${params.toString()}`);
     };
 
     const params = new URLSearchParams(searchParams?.toString() || "");

@@ -1,7 +1,8 @@
-import { Metadata } from "next";
-import { siteConfig } from "@/lib/config";
-import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { FaEnvelope, FaMapMarkerAlt, FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
+import { siteConfig } from "@/lib/config";
+import MapIframe from "@/components/ui/map-iframe";
 
 export const metadata: Metadata = {
     title: "İletişim",
@@ -38,7 +39,11 @@ export default function ContactPage() {
                     <h3 className="font-bold text-lg mb-3 text-foreground">Telefon</h3>
                     <div className="flex flex-col gap-2">
                         {siteConfig.contact.phones.map((phone, idx) => (
-                            <Link key={idx} href={`tel:${phone.value}`} className="text-muted-foreground hover:text-primary transition-colors font-medium">
+                            <Link
+                                key={idx}
+                                href={`tel:${phone.value}`}
+                                className="text-muted-foreground hover:text-primary transition-colors font-medium"
+                            >
                                 {phone.label}
                             </Link>
                         ))}
@@ -51,7 +56,10 @@ export default function ContactPage() {
                         <FaEnvelope className="w-7 h-7" />
                     </div>
                     <h3 className="font-bold text-lg mb-3 text-foreground">E-Posta</h3>
-                    <Link href={`mailto:${siteConfig.contact.email}`} className="text-muted-foreground hover:text-primary transition-colors font-medium">
+                    <Link
+                        href={`mailto:${siteConfig.contact.email}`}
+                        className="text-muted-foreground hover:text-primary transition-colors font-medium"
+                    >
                         {siteConfig.contact.email}
                     </Link>
                 </div>
@@ -62,23 +70,20 @@ export default function ContactPage() {
                         <FaWhatsapp className="w-8 h-8" />
                     </div>
                     <h3 className="font-bold text-lg mb-3 text-foreground">WhatsApp</h3>
-                    <Link href={siteConfig.links.whatsapp} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-green-600 transition-colors font-medium">
+                    <Link
+                        href={siteConfig.links.whatsapp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-green-600 transition-colors font-medium"
+                    >
                         +90 555 978 55 53
                     </Link>
                 </div>
             </div>
 
             {/* Harita */}
-            <div className="w-full h-[400px] md:h-[600px] rounded-3xl overflow-hidden border bg-muted shadow-sm">
-                <iframe 
-                    src={siteConfig.contact.mapIframeUrl} 
-                    width="100%" 
-                    height="100%" 
-                    style={{ border: 0 }} 
-                    allowFullScreen 
-                    loading="lazy" 
-                    referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
+            <div className="w-full h-[400px] md:h-[600px] rounded-3xl overflow-hidden border bg-muted shadow-sm relative">
+                <MapIframe src={siteConfig.contact.mapIframeUrl} />
             </div>
         </div>
     );

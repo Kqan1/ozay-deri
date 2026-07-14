@@ -1,13 +1,12 @@
 "use client";
 
 import { Loader2, Search, X } from "lucide-react";
-import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
-import Link from "next/link";
-import ProductModalLink from "@/components/shop/product-modal-link";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import { useEffect, useRef, useState, Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { getLiveSearchSuggestions } from "@/app/actions/search-actions";
+import ProductModalLink from "@/components/shop/product-modal-link";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 
 function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean }) {
     const searchParams = useSearchParams();
@@ -16,9 +15,9 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
-    
+
     const router = useRouter();
-    const pathname = usePathname();
+    const _pathname = usePathname();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const isTypingRef = useRef(false);
@@ -40,13 +39,13 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
     // Global Cmd+K / Ctrl+K shortcut
     useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
                 e.preventDefault();
                 inputRef.current?.focus();
             }
         };
-        document.addEventListener('keydown', handleGlobalKeyDown);
-        return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+        document.addEventListener("keydown", handleGlobalKeyDown);
+        return () => document.removeEventListener("keydown", handleGlobalKeyDown);
     }, []);
 
     // Debounce logic
@@ -102,18 +101,23 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
     };
 
     return (
-        <div ref={wrapperRef} className={`relative w-full ${forceVisible ? 'block' : 'max-w-md hidden md:block mx-4'} group`}>
-            <div 
+        <div
+            ref={wrapperRef}
+            className={`relative w-full ${forceVisible ? "block" : "max-w-md hidden md:block mx-4"} group`}
+        >
+            <div
                 className={`relative flex items-center transition-all duration-300 rounded-full border ${
-                    isFocused 
-                        ? 'ring-4 ring-primary/20 border-primary bg-background shadow-lg' 
-                        : 'border-input bg-muted/40 hover:bg-muted/80 shadow-sm'
+                    isFocused
+                        ? "ring-4 ring-primary/20 border-primary bg-background shadow-lg"
+                        : "border-input bg-muted/40 hover:bg-muted/80 shadow-sm"
                 }`}
             >
-                <div className={`absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none transition-colors duration-300 ${isFocused ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div
+                    className={`absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none transition-colors duration-300 ${isFocused ? "text-primary" : "text-muted-foreground"}`}
+                >
                     {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
                 </div>
-                
+
                 <input
                     ref={inputRef}
                     type="text"
@@ -137,12 +141,12 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                 {/* Right side actions */}
                 <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 gap-1">
                     {query ? (
-                        <button 
-                            onClick={() => { 
-                                setQuery(''); 
-                                setResults([]); 
-                                setIsOpen(false); 
-                                inputRef.current?.focus(); 
+                        <button
+                            onClick={() => {
+                                setQuery("");
+                                setResults([]);
+                                setIsOpen(false);
+                                inputRef.current?.focus();
                             }}
                             className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none"
                             aria-label="Aramayı temizle"
@@ -150,7 +154,7 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                             <X size={14} />
                         </button>
                     ) : null}
-                    
+
                     <button
                         onClick={() => {
                             if (query.trim()) {
@@ -161,8 +165,8 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                             }
                         }}
                         className={`p-1.5 rounded-full flex items-center justify-center transition-all ${
-                            query.trim() 
-                                ? "bg-primary text-primary-foreground shadow-sm hover:opacity-90 cursor-pointer" 
+                            query.trim()
+                                ? "bg-primary text-primary-foreground shadow-sm hover:opacity-90 cursor-pointer"
                                 : "bg-muted text-muted-foreground opacity-50 cursor-default pointer-events-none"
                         }`}
                         aria-label="Arama yap"
@@ -176,7 +180,9 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
             {isOpen && results.length > 0 && (
                 <div className="absolute top-full mt-3 w-full rounded-2xl border bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="px-4 py-2.5 border-b bg-muted/30">
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Arama Sonuçları</span>
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
+                            Arama Sonuçları
+                        </span>
                     </div>
                     <ul className="max-h-96 overflow-y-auto p-2 space-y-1">
                         {results.map((product) => (
@@ -203,7 +209,9 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                                         )}
                                     </div>
                                     <div className="flex flex-col min-w-0 flex-1">
-                                        <span className="truncate text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-200">{product.name}</span>
+                                        <span className="truncate text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
+                                            {product.name}
+                                        </span>
                                         <div className="flex items-center gap-2 mt-0.5">
                                             {product.categoryName && (
                                                 <span className="text-[10px] font-medium bg-secondary/80 text-secondary-foreground px-2 py-0.5 rounded-full truncate">
@@ -224,9 +232,9 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
 
 export default function LiveSearch({ forceVisible = false }: { forceVisible?: boolean }) {
     return (
-        <Suspense 
+        <Suspense
             fallback={
-                <div className={`relative w-full ${forceVisible ? 'block' : 'max-w-md hidden md:block mx-4'}`}>
+                <div className={`relative w-full ${forceVisible ? "block" : "max-w-md hidden md:block mx-4"}`}>
                     <div className="relative flex items-center rounded-full border border-input bg-muted/40 shadow-sm h-[42px]">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-muted-foreground">
                             <Search size={18} />

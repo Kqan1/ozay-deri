@@ -1,21 +1,27 @@
 "use client";
 
-import { 
-    ShoppingBag, ShoppingCart, ArrowRight, ArrowDown, Star, 
-    Tag, Search, Phone, Mail, Info, Play, ExternalLink, Heart, 
-    Gift, Percent 
+import Autoplay from "embla-carousel-autoplay";
+import {
+    ArrowDown,
+    ArrowRight,
+    ExternalLink,
+    Gift,
+    Heart,
+    Info,
+    Mail,
+    Percent,
+    Phone,
+    Play,
+    Search,
+    ShoppingBag,
+    ShoppingCart,
+    Star,
+    Tag,
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 
 export interface CarouselSlideData {
@@ -39,9 +45,7 @@ interface HeroCarouselProps {
 }
 
 export function HeroCarousel({ slides }: HeroCarouselProps) {
-    const plugin = useRef(
-        Autoplay({ delay: 5000, stopOnInteraction: true })
-    );
+    const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
 
     if (!slides || slides.length === 0) return null;
 
@@ -63,10 +67,7 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
                             {/* Arkaplan Görseli */}
                             {slide.image && (
                                 <div className="absolute inset-0 z-0 opacity-70">
-                                    <ImageWithSpinner
-                                        src={slide.image}
-                                        alt={slide.title}
-                                    />
+                                    <ImageWithSpinner src={slide.image} alt={slide.title} />
                                 </div>
                             )}
                             {/* Degrade Katmanı (Yazı okunaklılığı için) */}
@@ -79,30 +80,48 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
                                 >
                                     {slide.title}
                                 </h1>
-                                
+
                                 {slide.description && (
                                     <p
                                         className={`${slide.descSize || "text-lg sm:text-xl"} drop-shadow-md max-w-2xl mx-auto`}
-                                        style={{ 
-                                            color: slide.descColor || "#f3f4f6", 
-                                            fontWeight: slide.descWeight || "normal" 
+                                        style={{
+                                            color: slide.descColor || "#f3f4f6",
+                                            fontWeight: slide.descWeight || "normal",
                                         }}
                                     >
                                         {slide.description}
                                     </p>
                                 )}
-                                
+
                                 {slide.buttons && Array.isArray(slide.buttons) && slide.buttons.length > 0 && (
                                     <div className="flex flex-wrap justify-center gap-4 pt-6">
                                         {slide.buttons.map((btn: any, i: number) => {
                                             const iconMap: Record<string, any> = {
-                                                ShoppingBag, ShoppingCart, ArrowRight, ArrowDown, Star,
-                                                Tag, Search, Phone, Mail, Info, Play, ExternalLink, Heart,
-                                                Gift, Percent
+                                                ShoppingBag,
+                                                ShoppingCart,
+                                                ArrowRight,
+                                                ArrowDown,
+                                                Star,
+                                                Tag,
+                                                Search,
+                                                Phone,
+                                                Mail,
+                                                Info,
+                                                Play,
+                                                ExternalLink,
+                                                Heart,
+                                                Gift,
+                                                Percent,
                                             };
                                             const Icon = iconMap[btn.icon] || null;
                                             return (
-                                                <Button key={i} size="lg" className="font-semibold text-base px-8 h-12" variant={(btn.variant as any) || "default"} asChild>
+                                                <Button
+                                                    key={i}
+                                                    size="lg"
+                                                    className="font-semibold text-base px-8 h-12"
+                                                    variant={(btn.variant as any) || "default"}
+                                                    asChild
+                                                >
                                                     <Link href={btn.link || "#"}>
                                                         {Icon && <Icon className="mr-2 h-5 w-5" />}
                                                         {btn.text}

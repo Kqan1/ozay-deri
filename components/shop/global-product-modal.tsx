@@ -1,26 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { getProductById } from "@/app/actions/product-actions";
-import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 import { Loader2, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { getProductById } from "@/app/actions/product-actions";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 
-export default function GlobalProductModal() {
+function GlobalProductModalContent() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
-    const router = useRouter();
-    
+    const _router = useRouter();
+
     const productId = searchParams.get("productId");
     const [product, setProduct] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
-    
+
     useEffect(() => {
         if (productId) {
             setIsLoading(true);
-            getProductById(productId).then(data => {
+            getProductById(productId).then((data) => {
                 setProduct(data);
                 setActiveImageIndex(0);
                 setIsLoading(false);
@@ -34,7 +34,7 @@ export default function GlobalProductModal() {
         if (!open) {
             const newParams = new URLSearchParams(searchParams.toString());
             newParams.delete("productId");
-            window.history.pushState(null, '', `${pathname}?${newParams.toString()}`);
+            window.history.pushState(null, "", `${pathname}?${newParams.toString()}`);
         }
     };
 
@@ -46,7 +46,7 @@ export default function GlobalProductModal() {
 
                 {/* Custom Close Button for Mobile Overlay - Fixed at top of modal */}
                 <div className="absolute top-4 right-4 z-50 md:hidden">
-                    <button 
+                    <button
                         onClick={() => handleOpenChange(false)}
                         className="p-2 bg-background/50 backdrop-blur-md rounded-full text-foreground hover:bg-background/80 transition"
                     >
@@ -83,7 +83,10 @@ export default function GlobalProductModal() {
                                     <div className="h-6 w-40 bg-muted/60 rounded mb-4 animate-pulse"></div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                                         {[1, 2, 3, 4, 5, 6].map((i) => (
-                                            <div key={i} className="bg-muted/20 p-4 rounded-xl border border-border/30 h-[76px] animate-pulse"></div>
+                                            <div
+                                                key={i}
+                                                className="bg-muted/20 p-4 rounded-xl border border-border/30 h-[76px] animate-pulse"
+                                            ></div>
                                         ))}
                                     </div>
                                 </div>
@@ -97,9 +100,9 @@ export default function GlobalProductModal() {
                             {/* Main Active Image */}
                             <div className="flex-1 relative w-full h-full">
                                 {product.images?.length > 0 ? (
-                                    <ImageWithSpinner 
-                                        src={product.images[activeImageIndex] || product.images[0]} 
-                                        alt={product.name} 
+                                    <ImageWithSpinner
+                                        src={product.images[activeImageIndex] || product.images[0]}
+                                        alt={product.name}
                                         className="object-contain w-full h-full absolute inset-0"
                                     />
                                 ) : (
@@ -114,12 +117,16 @@ export default function GlobalProductModal() {
                                 <div className="absolute bottom-3 md:bottom-6 left-0 right-0 px-2 md:px-4 z-20 flex justify-center">
                                     <div className="flex gap-2 md:gap-3 overflow-x-auto p-1.5 md:p-2.5 bg-background border rounded-2xl shadow-lg max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                                         {product.images.map((img: string, i: number) => (
-                                            <button 
-                                                key={i} 
+                                            <button
+                                                key={i}
                                                 onClick={() => setActiveImageIndex(i)}
-                                                className={`relative shrink-0 w-12 h-16 md:w-16 md:h-20 rounded-xl overflow-hidden ring-2 transition-all duration-300 ${activeImageIndex === i ? 'ring-primary scale-105 shadow-md' : 'ring-transparent opacity-60 hover:opacity-100 hover:scale-105'}`}
+                                                className={`relative shrink-0 w-12 h-16 md:w-16 md:h-20 rounded-xl overflow-hidden ring-2 transition-all duration-300 ${activeImageIndex === i ? "ring-primary scale-105 shadow-md" : "ring-transparent opacity-60 hover:opacity-100 hover:scale-105"}`}
                                             >
-                                                <ImageWithSpinner src={img} alt={`Thumbnail ${i}`} className="object-cover w-full h-full" />
+                                                <ImageWithSpinner
+                                                    src={img}
+                                                    alt={`Thumbnail ${i}`}
+                                                    className="object-cover w-full h-full"
+                                                />
                                             </button>
                                         ))}
                                     </div>
@@ -130,7 +137,7 @@ export default function GlobalProductModal() {
                         {/* Right: Details */}
                         <div className="w-full md:w-1/2 flex flex-col bg-background relative shrink-0">
                             {/* Custom Close Button for Desktop */}
-                            <button 
+                            <button
                                 onClick={() => handleOpenChange(false)}
                                 className="absolute top-6 right-6 z-50 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition hidden md:block"
                             >
@@ -152,9 +159,19 @@ export default function GlobalProductModal() {
                                     </div>
 
                                     {/* Description / Summary Field */}
-                                    {product.fields?.find((f: any) => f.name.toLowerCase().includes("açıklama") || f.name.toLowerCase().includes("description"))?.stringValue && (
+                                    {product.fields?.find(
+                                        (f: any) =>
+                                            f.name.toLowerCase().includes("açıklama") ||
+                                            f.name.toLowerCase().includes("description"),
+                                    )?.stringValue && (
                                         <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
-                                            {product.fields.find((f: any) => f.name.toLowerCase().includes("açıklama") || f.name.toLowerCase().includes("description")).stringValue}
+                                            {
+                                                product.fields.find(
+                                                    (f: any) =>
+                                                        f.name.toLowerCase().includes("açıklama") ||
+                                                        f.name.toLowerCase().includes("description"),
+                                                ).stringValue
+                                            }
                                         </div>
                                     )}
 
@@ -165,15 +182,27 @@ export default function GlobalProductModal() {
                                         <h3 className="text-lg font-semibold mb-4 text-foreground">Ürün Özellikleri</h3>
                                         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                                             {product.fields
-                                                ?.filter((f: any) => f.name !== "Thumbnail" && !f.name.toLowerCase().includes("açıklama") && !f.name.toLowerCase().includes("description"))
+                                                ?.filter(
+                                                    (f: any) =>
+                                                        f.name !== "Thumbnail" &&
+                                                        !f.name.toLowerCase().includes("açıklama") &&
+                                                        !f.name.toLowerCase().includes("description"),
+                                                )
                                                 .map((field: any) => (
-                                                <div key={field.id} className="bg-muted/30 p-4 rounded-xl border border-border/50">
-                                                    <dt className="text-sm font-medium text-muted-foreground mb-1">{field.name}</dt>
-                                                    <dd className="text-base font-semibold text-foreground">
-                                                        {field.type === "STRING" ? field.stringValue : `${field.numberValue} ${field.unit || ""}`}
-                                                    </dd>
-                                                </div>
-                                            ))}
+                                                    <div
+                                                        key={field.id}
+                                                        className="bg-muted/30 p-4 rounded-xl border border-border/50"
+                                                    >
+                                                        <dt className="text-sm font-medium text-muted-foreground mb-1">
+                                                            {field.name}
+                                                        </dt>
+                                                        <dd className="text-base font-semibold text-foreground">
+                                                            {field.type === "STRING"
+                                                                ? field.stringValue
+                                                                : `${field.numberValue} ${field.unit || ""}`}
+                                                        </dd>
+                                                    </div>
+                                                ))}
                                         </dl>
                                     </div>
                                 </div>
@@ -183,5 +212,13 @@ export default function GlobalProductModal() {
                 )}
             </DialogContent>
         </Dialog>
+    );
+}
+
+export default function GlobalProductModal() {
+    return (
+        <Suspense fallback={null}>
+            <GlobalProductModalContent />
+        </Suspense>
     );
 }

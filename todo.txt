@@ -1,3 +1,0 @@
-arama sayfası baştan yapılacak
-filtreleme loader yenilenecek
-arama barı arama kelimesi olmasına rağmen yazmıyor

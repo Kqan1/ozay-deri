@@ -1,6 +1,6 @@
 "use client";
 
-import { CornerDownRight, Eye, EyeOff, Image as ImageIcon, Package, Pencil, Trash2, Loader2 } from "lucide-react";
+import { CornerDownRight, Eye, EyeOff, Image as ImageIcon, Loader2, Package, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -212,7 +212,7 @@ export default function ProductsAdminPage() {
                         await deleteProduct(id);
                         toast.success("Ürün silindi.");
                         await loadData(false);
-                    } catch (error) {
+                    } catch (_error) {
                         toast.error("Ürün silinirken bir hata oluştu.");
                     } finally {
                         setDeletingId(null);
@@ -394,92 +394,90 @@ export default function ProductsAdminPage() {
                                     Kategori Özellikleri
                                 </h3>
 
-                                {getApplicableFieldDefs()
-                                    .length === 0 ? (
+                                {getApplicableFieldDefs().length === 0 ? (
                                     <p className="text-sm text-muted-foreground italic">
                                         Bu kategori için tanımlı alan yok.
                                     </p>
                                 ) : (
-                                    getApplicableFieldDefs()
-                                        .map((fd, i) => {
-                                            const currentVal = fields.find((f) => f.name === fd.name) || {
-                                                name: fd.name,
-                                                type: fd.type,
-                                                stringValue: "",
-                                                numberValue: null,
-                                                unit: "",
-                                            };
+                                    getApplicableFieldDefs().map((fd, i) => {
+                                        const currentVal = fields.find((f) => f.name === fd.name) || {
+                                            name: fd.name,
+                                            type: fd.type,
+                                            stringValue: "",
+                                            numberValue: null,
+                                            unit: "",
+                                        };
 
-                                            return (
-                                                <div key={i} className="space-y-2 p-3 border rounded bg-muted/20">
-                                                    <label className="text-sm font-medium flex items-center justify-between">
-                                                        {fd.name}
-                                                        <span className="text-[10px] text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
-                                                            {fd.type === "STRING" ? "Metin" : "Sayı+Birim"}
-                                                        </span>
-                                                    </label>
+                                        return (
+                                            <div key={i} className="space-y-2 p-3 border rounded bg-muted/20">
+                                                <label className="text-sm font-medium flex items-center justify-between">
+                                                    {fd.name}
+                                                    <span className="text-[10px] text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
+                                                        {fd.type === "STRING" ? "Metin" : "Sayı+Birim"}
+                                                    </span>
+                                                </label>
 
-                                                    {fd.type === "STRING" && (
+                                                {fd.type === "STRING" && (
+                                                    <input
+                                                        type="text"
+                                                        placeholder={`${fd.name} değeri...`}
+                                                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
+                                                        value={currentVal.stringValue || ""}
+                                                        onChange={(e) =>
+                                                            updateFieldByName(
+                                                                fd.name,
+                                                                fd.type,
+                                                                "stringValue",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                )}
+
+                                                {fd.type === "NUMBER_UNIT" && (
+                                                    <div className="flex gap-2">
                                                         <input
-                                                            type="text"
-                                                            placeholder={`${fd.name} değeri...`}
+                                                            type="number"
+                                                            placeholder="Değer"
                                                             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
-                                                            value={currentVal.stringValue || ""}
+                                                            value={
+                                                                currentVal.numberValue === null ||
+                                                                currentVal.numberValue === undefined
+                                                                    ? ""
+                                                                    : currentVal.numberValue
+                                                            }
                                                             onChange={(e) =>
                                                                 updateFieldByName(
                                                                     fd.name,
                                                                     fd.type,
-                                                                    "stringValue",
-                                                                    e.target.value,
+                                                                    "numberValue",
+                                                                    parseFloat(e.target.value),
                                                                 )
                                                             }
                                                         />
-                                                    )}
-
-                                                    {fd.type === "NUMBER_UNIT" && (
-                                                        <div className="flex gap-2">
-                                                            <input
-                                                                type="number"
-                                                                placeholder="Değer"
-                                                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
-                                                                value={
-                                                                    currentVal.numberValue === null ||
-                                                                    currentVal.numberValue === undefined
-                                                                        ? ""
-                                                                        : currentVal.numberValue
-                                                                }
-                                                                onChange={(e) =>
-                                                                    updateFieldByName(
-                                                                        fd.name,
-                                                                        fd.type,
-                                                                        "numberValue",
-                                                                        parseFloat(e.target.value),
-                                                                    )
-                                                                }
-                                                            />
-                                                            <select
-                                                                className="flex h-9 w-24 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
-                                                                value={currentVal.unit || ""}
-                                                                onChange={(e) =>
-                                                                    updateFieldByName(
-                                                                        fd.name,
-                                                                        fd.type,
-                                                                        "unit",
-                                                                        e.target.value,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <option value="">Birim</option>
-                                                                <option value="kg">kg</option>
-                                                                <option value="gr">gr</option>
-                                                                <option value="cm">cm</option>
-                                                                <option value="m">m</option>
-                                                            </select>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })
+                                                        <select
+                                                            className="flex h-9 w-24 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background"
+                                                            value={currentVal.unit || ""}
+                                                            onChange={(e) =>
+                                                                updateFieldByName(
+                                                                    fd.name,
+                                                                    fd.type,
+                                                                    "unit",
+                                                                    e.target.value,
+                                                                )
+                                                            }
+                                                        >
+                                                            <option value="">Birim</option>
+                                                            <option value="kg">kg</option>
+                                                            <option value="gr">gr</option>
+                                                            <option value="cm">cm</option>
+                                                            <option value="m">m</option>
+                                                        </select>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })
                                 )}
                             </div>
                         )}
@@ -626,7 +624,9 @@ export default function ProductsAdminPage() {
                                                                         {deletingId === p.id ? (
                                                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                                         ) : (
-                                                                            <><Trash2 className="w-3.5 h-3.5" /> Sil</>
+                                                                            <>
+                                                                                <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                                            </>
                                                                         )}
                                                                     </button>
                                                                 </div>
@@ -743,7 +743,9 @@ export default function ProductsAdminPage() {
                                                 {deletingId === p.id ? (
                                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                 ) : (
-                                                    <><Trash2 className="w-3.5 h-3.5" /> Kalıcı Sil</>
+                                                    <>
+                                                        <Trash2 className="w-3.5 h-3.5" /> Kalıcı Sil
+                                                    </>
                                                 )}
                                             </button>
                                         </div>

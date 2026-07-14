@@ -1,12 +1,12 @@
 "use client";
 
-import { CornerDownRight, Eye, EyeOff, Folders, Image as ImageIcon, Pencil, Trash2, Loader2 } from "lucide-react";
+import { CornerDownRight, Eye, EyeOff, Folders, Image as ImageIcon, Loader2, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CustomUploadDropzone } from "@/components/ui/custom-upload";
 import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 import { SortableImageGallery } from "@/components/ui/sortable-image-gallery";
-import { createCategory, deleteCategory, getCategories, updateCategory, deleteUploadThingImage } from "../actions";
+import { createCategory, deleteCategory, deleteUploadThingImage, getCategories, updateCategory } from "../actions";
 import Loading from "./loading";
 
 export default function CategoriesAdminPage() {
@@ -18,7 +18,7 @@ export default function CategoriesAdminPage() {
     const [categoryName, setCategoryName] = useState("");
     const [parentCategoryId, setParentCategoryId] = useState("");
     const [categoryIsHidden, setCategoryIsHidden] = useState(false);
-    
+
     const [images, setImages] = useState<string[]>([]);
     const [newImages, setNewImages] = useState<string[]>([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -117,7 +117,7 @@ export default function CategoriesAdminPage() {
                                     await deleteCategory(id, true);
                                     toast.success("Kategori ve içindeki tüm ürünler silindi.");
                                     await loadData(false);
-                                } catch (error) {
+                                } catch (_error) {
                                     toast.error("Silme işlemi başarısız oldu.");
                                 } finally {
                                     setDeletingId(null);
@@ -135,7 +135,7 @@ export default function CategoriesAdminPage() {
                                     await deleteCategory(id, false);
                                     toast.success("Kategori silindi. Ürünler 'Kategorisiz' olarak korundu.");
                                     await loadData(false);
-                                } catch (error) {
+                                } catch (_error) {
                                     toast.error("Silme işlemi başarısız oldu.");
                                 } finally {
                                     setDeletingId(null);
@@ -168,7 +168,7 @@ export default function CategoriesAdminPage() {
             });
             toast.success(cat.isHidden ? "Kategori görünür yapıldı." : "Kategori gizlendi.");
             await loadData(false);
-        } catch (error) {
+        } catch (_error) {
             toast.error("İşlem geri alındı, hata oluştu.");
         } finally {
             setTogglingId(null);
@@ -284,7 +284,13 @@ export default function CategoriesAdminPage() {
                                 disabled={isSubmitting || isUploading}
                                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
                             >
-                                {isSubmitting ? "Kaydediliyor..." : isUploading ? "Fotoğraf Yükleniyor..." : editCategoryId ? "Güncelle" : "Ekle"}
+                                {isSubmitting
+                                    ? "Kaydediliyor..."
+                                    : isUploading
+                                      ? "Fotoğraf Yükleniyor..."
+                                      : editCategoryId
+                                        ? "Güncelle"
+                                        : "Ekle"}
                             </button>
                             {editCategoryId && (
                                 <button
@@ -321,7 +327,11 @@ export default function CategoriesAdminPage() {
                                             )}
                                             {c.images && c.images.length > 0 && (
                                                 <div className="w-8 h-8 rounded shrink-0 overflow-hidden border bg-muted">
-                                                    <ImageWithSpinner src={c.images[0]} alt={c.name} className="w-full h-full object-cover" />
+                                                    <ImageWithSpinner
+                                                        src={c.images[0]}
+                                                        alt={c.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
                                                 </div>
                                             )}
                                             {c.name}
@@ -364,7 +374,9 @@ export default function CategoriesAdminPage() {
                                             {deletingId === c.id ? (
                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                             ) : (
-                                                <><Trash2 className="w-3.5 h-3.5" /> Sil</>
+                                                <>
+                                                    <Trash2 className="w-3.5 h-3.5" /> Sil
+                                                </>
                                             )}
                                         </button>
                                     </div>

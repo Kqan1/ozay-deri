@@ -115,3 +115,12 @@ graph TD
 - **Uncategorized Products Section:**
   - Evaluated on the client via `products.filter(p => p.categoryId === null)` in `app/admin/products/page.tsx`.
   - Rendered in a restricted section at the bottom of the products page. Admins can delete or assign a category to these items to clean up database state.
+
+---
+
+## 5. Reusability & Shared Services
+
+To maintain DRY principles across the application, logic for handling EAV data reading is centralized:
+
+- **`lib/services/product-service.ts`**: Contains functions to extract `getFilterOptions` (to generate Sidebar UI choices) and `buildFilterConditions`/`buildRawFilterConditions` (to translate URL params into Prisma Queries or Raw SQL).
+- **`components/shop/product-catalog-layout.tsx`**: A unified layout wrapper used by both the Category and Search pages to ensure identical UI and Suspense streaming patterns.

@@ -6,7 +6,12 @@ import { requireAdmin } from "@/lib/auth-utils";
 
 import prisma from "@/lib/db";
 
-export async function createCategory(data: { name: string; parentId?: string | null; isHidden?: boolean; images?: string[] }) {
+export async function createCategory(data: {
+    name: string;
+    parentId?: string | null;
+    isHidden?: boolean;
+    images?: string[];
+}) {
     await requireAdmin();
     const category = await prisma.category.create({
         data: {
@@ -20,12 +25,15 @@ export async function createCategory(data: { name: string; parentId?: string | n
     return category;
 }
 
-export async function updateCategory(id: string, data: { name: string; parentId?: string | null; isHidden?: boolean; images?: string[] }) {
+export async function updateCategory(
+    id: string,
+    data: { name: string; parentId?: string | null; isHidden?: boolean; images?: string[] },
+) {
     await requireAdmin();
 
     const oldCategory = await prisma.category.findUnique({ where: { id } });
     if (oldCategory && data.images) {
-        const removedImages = oldCategory.images.filter((img) => !data.images!.includes(img));
+        const removedImages = oldCategory.images.filter((img) => !data.images?.includes(img));
         const keys = removedImages.map((url) => url.split("/f/")[1]).filter(Boolean);
         if (keys.length > 0) {
             const { UTApi } = await import("uploadthing/server");
