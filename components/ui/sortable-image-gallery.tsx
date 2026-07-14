@@ -95,7 +95,7 @@ export function SortableImageGallery({
 
                         {/* Actions Overlay */}
                         <div
-                            className={`absolute inset-0 bg-black/40 transition-opacity flex flex-col justify-start p-2 ${isDragging ? "opacity-0" : "opacity-0 group-hover:opacity-100"}`}
+                            className={`absolute inset-0 transition-opacity flex flex-col justify-start p-2 sm:bg-black/40 ${isDragging ? "opacity-0" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}
                         >
                             <div className="flex justify-end">
                                 <button

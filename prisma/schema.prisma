@@ -111,9 +111,3 @@ model FieldDefinition {
 
   @@unique([name, categoryId])
 }
-
-model SearchLog {
-  id        String   @id @default(cuid())
-  term      String
-  createdAt DateTime @default(now())
-}

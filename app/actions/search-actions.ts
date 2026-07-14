@@ -47,13 +47,3 @@ export async function getLiveSearchSuggestions(query: string) {
     return results;
 }
 
-export async function logEmptySearch(term: string) {
-    if (!term) return;
-    try {
-        await db.searchLog.create({
-            data: { term },
-        });
-    } catch (e) {
-        console.error("Failed to log empty search", e);
-    }
-}

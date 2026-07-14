@@ -1,11 +1,12 @@
 "use client";
 
-import { Activity, ArrowUpRight, Folders, Package, Settings2 } from "lucide-react";
+import { Activity, ArrowUpRight, Folders, Package, Settings2, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAdminStats } from "./actions";
+import { getAdminStats, cleanOrphanedFiles } from "./actions";
 
 export default function AdminDashboardPage() {
     const { data: session } = useSession();
@@ -17,8 +18,9 @@ export default function AdminDashboardPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [animateGraph, setAnimateGraph] = useState(false);
     const [systemStatus, setSystemStatus] = useState<"loading" | "active" | "error">("loading");
+    const [isCleaning, setIsCleaning] = useState(false);
 
-    console.log(session?.user);
+
 
     useEffect(() => {
         getAdminStats()
@@ -33,6 +35,23 @@ export default function AdminDashboardPage() {
                 setSystemStatus("error");
             });
     }, []);
+
+    const handleCleanup = async () => {
+        setIsCleaning(true);
+        try {
+            const result = await cleanOrphanedFiles();
+            if (result.deleted > 0) {
+                toast.success(`Temizlik tamamlandı! ${result.deleted} adet sahipsiz dosya silindi.`);
+            } else {
+                toast.info(`Temizlik tamamlandı. Silinecek sahipsiz dosya bulunamadı. Toplam taranan: ${result.scanned}`);
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Temizlik sırasında bir hata oluştu.");
+        } finally {
+            setIsCleaning(false);
+        }
+    };
 
     const total = stats.productsCount + stats.categoriesCount + stats.fieldsCount || 1;
     const prodHeight = animateGraph ? `${Math.max((stats.productsCount / total) * 100, 5)}%` : "0%";
@@ -227,6 +246,37 @@ export default function AdminDashboardPage() {
                                 )}
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Ekstra Araçlar */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2">
+                            <Trash2 className="w-4 h-4 text-orange-500" /> Depolama Temizliği
+                        </CardTitle>
+                        <CardDescription>
+                            Sunucuda yüklenmiş ancak hiçbir ürüne/kategoriye atanmamış ve 2 saati geçmiş sahipsiz görselleri temizler.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <button
+                            onClick={handleCleanup}
+                            disabled={isCleaning}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isCleaning ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" /> Temizleniyor...
+                                </>
+                            ) : (
+                                <>
+                                    Gereksiz Dosyaları Temizle
+                                </>
+                            )}
+                        </button>
                     </CardContent>
                 </Card>
             </div>

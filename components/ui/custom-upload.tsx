@@ -29,11 +29,60 @@ export function CustomUploadDropzone({
         },
     });
 
+    const processFiles = async (files: File[]) => {
+        const results = await Promise.all(
+            files.map(async (file) => {
+                let currentFile = file;
+
+                // 1. HEIC Kontrolü ve Dönüştürme
+                if (
+                    currentFile.type === "image/heic" ||
+                    currentFile.type === "image/heif" ||
+                    currentFile.name.toLowerCase().endsWith(".heic") ||
+                    currentFile.name.toLowerCase().endsWith(".heif")
+                ) {
+                    try {
+                        const heic2any = (await import("heic2any")).default;
+                        const convertedBlob = await heic2any({ blob: currentFile, toType: "image/jpeg", quality: 0.8 });
+                        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                        const newFileName = currentFile.name.replace(/\.hei[cf]$/i, ".jpg");
+                        currentFile = new File([blob], newFileName, { type: "image/jpeg" });
+                    } catch (err) {
+                        toast.error(`${currentFile.name} dönüştürülemedi. Lütfen dosyayı .jpg olarak kaydedip tekrar deneyin.`);
+                        return null;
+                    }
+                }
+
+                // 2. Genel Fotoğraf Sıkıştırma (Compress)
+                // GIF ve SVG gibi boyutlandırma istemediğimiz formatları hariç tutuyoruz.
+                if (currentFile.type.startsWith("image/") && !currentFile.type.includes("svg") && !currentFile.type.includes("gif")) {
+                    try {
+                        const imageCompression = (await import("browser-image-compression")).default;
+                        const options = {
+                            maxSizeMB: 0.8, // Maksimum 800 KB olacak şekilde sıkıştır
+                            maxWidthOrHeight: 1600, // Genişlik/Yükseklik maksimum 1600px
+                            useWebWorker: true,
+                            initialQuality: 0.8, // %80 kalite
+                        };
+                        const compressedBlob = await imageCompression(currentFile, options);
+                        currentFile = new File([compressedBlob], currentFile.name, { type: compressedBlob.type });
+                    } catch (err) {
+                        // Eğer sıkıştırma hata verirse sessizce orijinal dosyayı yolla
+                    }
+                }
+
+                return currentFile;
+            })
+        );
+        return results.filter((f): f is File => f !== null);
+    };
+
     const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
-        const files = Array.from(e.target.files);
         setLocalUploading(true);
         onUploadBegin();
+        let files = Array.from(e.target.files);
+        files = await processFiles(files);
         await startUpload(files);
         setLocalUploading(false);
         e.target.value = ""; // Reset input
@@ -43,9 +92,10 @@ export function CustomUploadDropzone({
         e.preventDefault();
         setIsDragging(false);
         if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
-        const files = Array.from(e.dataTransfer.files);
         setLocalUploading(true);
         onUploadBegin();
+        let files = Array.from(e.dataTransfer.files);
+        files = await processFiles(files);
         await startUpload(files);
         setLocalUploading(false);
     };
@@ -68,7 +118,7 @@ export function CustomUploadDropzone({
             <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/*,.heic,.heif"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={onFileChange}
                 disabled={showLoading}

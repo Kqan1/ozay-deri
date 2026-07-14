@@ -1,7 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import ProductCatalogLayout from "@/components/shop/product-catalog-layout";
-import { logEmptySearch } from "@/app/actions/search-actions";
 import { Prisma } from "@/app/generated/prisma/client";
 import db from "@/lib/db";
 import { getFilterOptions, buildRawFilterConditions } from "@/lib/services/product-service";
@@ -118,10 +117,6 @@ export default async function SearchPage({
   `;
 
     const results = (await db.$queryRaw(query)) as any[];
-
-    if (results.length === 0 && page === 1 && filterKeys.length === 0) {
-        await logEmptySearch(q);
-    }
 
     // 4. Fetch possible values for filterable fields for Sidebar
     const filterOptions = await getFilterOptions(filterableFields);

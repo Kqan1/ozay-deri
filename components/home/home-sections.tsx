@@ -138,7 +138,7 @@ export async function NewProductsSection() {
         include: {
             fields: {
                 where: {
-                    name: "Thumbnail",
+                    name: { in: ["Thumbnail", "Açıklama", "Description"] },
                 },
             },
             category: true,
@@ -169,6 +169,7 @@ export async function NewProductsSection() {
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
                     {newProducts.map((product) => {
                         const thumbnail = product.fields.find(f => f.name === "Thumbnail")?.stringValue || (product.images && product.images.length > 0 ? product.images[0] : null);
+                        const description = product.fields.find(f => f.name.toLowerCase().includes("açıklama") || f.name.toLowerCase().includes("description"))?.stringValue;
 
                         return (
                             <ProductModalLink key={product.id} productId={product.id} className="group block">
@@ -186,9 +187,12 @@ export async function NewProductsSection() {
                                     )}
                                 </div>
                                 <div className="mt-4 space-y-1">
-                                    <h3 className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">
+                                    <h3 className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors line-clamp-2">
                                         {product.name}
                                     </h3>
+                                    {description && (
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+                                    )}
                                     {product.category?.name && (
                                         <p className="text-xs text-muted-foreground">{product.category.name}</p>
                                     )}

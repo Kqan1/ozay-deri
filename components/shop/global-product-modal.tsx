@@ -178,33 +178,40 @@ function GlobalProductModalContent() {
                                     <div className="h-px w-full bg-border" />
 
                                     {/* Specifications Grid */}
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-4 text-foreground">Ürün Özellikleri</h3>
-                                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                                            {product.fields
-                                                ?.filter(
-                                                    (f: any) =>
-                                                        f.name !== "Thumbnail" &&
-                                                        !f.name.toLowerCase().includes("açıklama") &&
-                                                        !f.name.toLowerCase().includes("description"),
-                                                )
-                                                .map((field: any) => (
-                                                    <div
-                                                        key={field.id}
-                                                        className="bg-muted/30 p-4 rounded-xl border border-border/50"
-                                                    >
-                                                        <dt className="text-sm font-medium text-muted-foreground mb-1">
-                                                            {field.name}
-                                                        </dt>
-                                                        <dd className="text-base font-semibold text-foreground">
-                                                            {field.type === "STRING"
-                                                                ? field.stringValue
-                                                                : `${field.numberValue} ${field.unit || ""}`}
-                                                        </dd>
-                                                    </div>
-                                                ))}
-                                        </dl>
-                                    </div>
+                                    {product.fields?.filter(
+                                        (f: any) =>
+                                            f.name !== "Thumbnail" &&
+                                            !f.name.toLowerCase().includes("açıklama") &&
+                                            !f.name.toLowerCase().includes("description"),
+                                    ).length > 0 && (
+                                        <div>
+                                            <h3 className="text-lg font-semibold mb-4 text-foreground">Ürün Özellikleri</h3>
+                                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                                                {product.fields
+                                                    .filter(
+                                                        (f: any) =>
+                                                            f.name !== "Thumbnail" &&
+                                                            !f.name.toLowerCase().includes("açıklama") &&
+                                                            !f.name.toLowerCase().includes("description"),
+                                                    )
+                                                    .map((field: any) => (
+                                                        <div
+                                                            key={field.id}
+                                                            className="bg-muted/30 p-4 rounded-xl border border-border/50"
+                                                        >
+                                                            <dt className="text-sm font-medium text-muted-foreground mb-1">
+                                                                {field.name}
+                                                            </dt>
+                                                            <dd className="text-base font-semibold text-foreground">
+                                                                {field.type === "STRING"
+                                                                    ? field.stringValue
+                                                                    : `${field.numberValue} ${field.unit || ""}`}
+                                                            </dd>
+                                                        </div>
+                                                    ))}
+                                            </dl>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -25,7 +25,6 @@ Arama ve filtreleme sistemi, ürünlere özel statik sütunlar (JSONB veya kolon
     *   `isFilterable`: `true` ise, detaylı arama sayfasında sol menüde kesin eşleşme (exact match) filtresi olarak listelenir.
     *   `isSearchable`: `true` ise, girilen arama terimi bu alanın verilerinde `pg_trgm` ile aranır (Bulanık Arama).
 *   **`ProductField`**: `FieldDefinition` ile tanımlanan alanların, ürün bazındaki gerçek değerlerini (`stringValue`, `numberValue`) tutar.
-*   **`SearchLog`**: Kullanıcıların arattığı ancak hiçbir sonucun bulunamadığı kelimeleri arka planda kaydeder.
 
 ---
 
@@ -66,13 +65,7 @@ EXISTS (
 
 ---
 
-## 5. Analytics: Boş Sonuç Takibi
 
-Arama sonuçları 0 (sıfır) ise ve kullanıcı henüz 1. sayfadaysa (ve aktif bir URL filtresi yoksa), aranan kelime asenkron ve sessiz bir şekilde arka planda tetiklenerek `SearchLog` tablosuna kaydedilir. 
-
-Bu sayede mağaza yönetimi, müşterilerin neyi arayıp bulamadığını analiz ederek yeni stok stratejileri geliştirebilir.
-
----
 
 ## 6. Yönetim (Admin Paneli)
 

@@ -92,6 +92,9 @@ export default function ProductGridLayout({
                                 <h3 className="text-sm sm:text-base font-medium text-muted-foreground group-hover:text-foreground transition-colors line-clamp-2">
                                     {product.name}
                                 </h3>
+                                {product.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+                                )}
                                 {product.categoryName && (
                                     <p className="text-xs text-muted-foreground">{product.categoryName}</p>
                                 )}

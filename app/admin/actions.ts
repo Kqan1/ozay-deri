@@ -336,3 +336,76 @@ export async function updateCarouselSlideOrder(updates: { id: string; order: num
     revalidatePath("/");
     return true;
 }
+
+export async function cleanOrphanedFiles(forceAll = false) {
+    await requireAdmin();
+
+    const { UTApi } = await import("uploadthing/server");
+    const utapi = new UTApi();
+
+    let allFiles: any[] = [];
+    let hasMore = true;
+    let offset = 0;
+    
+    // UploadThing'den tüm dosyaları çek
+    while (hasMore) {
+        const result = await utapi.listFiles({ limit: 500, offset });
+        if (result.files && result.files.length > 0) {
+            allFiles = allFiles.concat(result.files);
+            offset += result.files.length;
+        } else {
+            break;
+        }
+        hasMore = result.hasMore;
+    }
+
+    // Veritabanındaki tüm kullanım yerlerini topla
+    const categories = await prisma.category.findMany({ select: { images: true } });
+    const products = await prisma.product.findMany({ select: { images: true } });
+    const carousel = await prisma.carouselSlide.findMany({ select: { image: true } });
+    const productFields = await prisma.productField.findMany({
+        where: { name: "Thumbnail", stringValue: { not: null } },
+        select: { stringValue: true },
+    });
+
+    const usedKeys = new Set<string>();
+
+    const extractKey = (url: string | null | undefined) => {
+        if (!url) return;
+        const parts = url.split("/f/");
+        if (parts.length > 1 && parts[1]) {
+            usedKeys.add(parts[1]);
+        }
+    };
+
+    categories.forEach((c) => c.images.forEach(extractKey));
+    products.forEach((p) => p.images.forEach(extractKey));
+    carousel.forEach((c) => extractKey(c.image));
+    productFields.forEach((pf) => extractKey(pf.stringValue));
+
+    const now = Date.now();
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+    const keysToDelete: string[] = [];
+
+    for (const file of allFiles) {
+        if (!usedKeys.has(file.key)) {
+            // Eğer forceAll true ise süreye bakma (test amaçlı). Değilse sadece 2 saatten eskileri sil.
+            if (forceAll || now - file.uploadedAt > TWO_HOURS_MS) {
+                keysToDelete.push(file.key);
+            }
+        }
+    }
+
+    let deletedCount = 0;
+    if (keysToDelete.length > 0) {
+        await utapi.deleteFiles(keysToDelete);
+        deletedCount = keysToDelete.length;
+    }
+
+    return {
+        success: true,
+        scanned: allFiles.length,
+        deleted: deletedCount,
+        used: usedKeys.size,
+    };
+}
