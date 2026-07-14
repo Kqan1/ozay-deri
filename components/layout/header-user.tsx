@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { FaFacebook, FaInstagram, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
+import { FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import LiveSearch from "@/components/ui/live-search";
 import { siteConfig } from "@/lib/config";
@@ -62,34 +62,14 @@ export default async function HeaderUser() {
                                 <FaInstagram className="w-5 h-5" />
                             </Link>
                         )}
-                        {siteConfig.links.facebook && (
+                        {siteConfig.links.tiktok && (
                             <Link
-                                href={siteConfig.links.facebook}
+                                href={siteConfig.links.tiktok}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-muted"
+                                className="p-2 text-foreground hover:opacity-80 transition-opacity rounded-md hover:bg-muted"
                             >
-                                <FaFacebook className="w-5 h-5" />
-                            </Link>
-                        )}
-                        {siteConfig.links.twitter && (
-                            <Link
-                                href={siteConfig.links.twitter}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors rounded-md hover:bg-muted"
-                            >
-                                <FaTwitter className="w-5 h-5" />
-                            </Link>
-                        )}
-                        {siteConfig.links.youtube && (
-                            <Link
-                                href={siteConfig.links.youtube}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted"
-                            >
-                                <FaYoutube className="w-5 h-5" />
+                                <FaTiktok className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.whatsapp && (

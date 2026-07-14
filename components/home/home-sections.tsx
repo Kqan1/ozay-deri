@@ -11,8 +11,6 @@ export async function HomeCarouselSection() {
         orderBy: { order: "asc" },
     });
 
-    if (slides.length === 0) return null;
-
     return (
         <section className="relative w-full">
             <HeroCarousel slides={slides} />
@@ -44,8 +42,6 @@ export async function TopCategoriesSection() {
         take: 4,
     });
 
-    if (topCategories.length === 0) return null;
-
     return (
         <section className="space-y-8">
             <div className="flex items-center justify-between border-b pb-4">
@@ -58,56 +54,62 @@ export async function TopCategoriesSection() {
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {topCategories.map((category) => (
-                    <div
-                        key={category.id}
-                        className="bg-card text-card-foreground border rounded-xl shadow-sm hover:border-primary/50 transition-colors flex flex-col h-full overflow-hidden"
-                    >
-                        {/* Top: Title */}
-                        <div className="px-4 pt-4 pb-2 text-center">
-                            <h3 className="text-xl font-semibold tracking-tight">{category.name}</h3>
-                        </div>
-
-                        {/* Middle: Floating Image */}
-                        <Link
-                            href={`/categories/${category.id}`}
-                            className="flex-1 relative min-h-[140px] w-full flex items-center justify-center group mb-4 px-4"
+            {topCategories.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground bg-muted/50 rounded-xl border">
+                    Henüz kategori eklenmemiş.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                    {topCategories.map((category) => (
+                        <div
+                            key={category.id}
+                            className="bg-card text-card-foreground border rounded-xl shadow-sm hover:border-primary/50 transition-colors flex flex-col h-full overflow-hidden"
                         >
-                            {category.images && category.images.length > 0 ? (
-                                <ImageWithSpinner
-                                    src={category.images[0]}
-                                    alt={category.name}
-                                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-md"
-                                />
-                            ) : (
-                                <span className="text-muted-foreground text-sm">Görsel Yok</span>
-                            )}
-                        </Link>
+                            {/* Top: Title */}
+                            <div className="px-4 pt-4 pb-2 text-center">
+                                <h3 className="text-xl font-semibold tracking-tight">{category.name}</h3>
+                            </div>
 
-                        {/* Bottom: 2x3 Subcategory Grid (Always 2 columns) */}
-                        <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-0 mt-auto">
-                            {category.subcategories.map((sub) => (
-                                <Link
-                                    key={sub.id}
-                                    href={`/categories/${sub.id}`}
-                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-2 line-clamp-1 transition-colors"
-                                    title={sub.name}
-                                >
-                                    {sub.name}
-                                </Link>
-                            ))}
-                            {/* Hepsi (All) Button */}
+                            {/* Middle: Floating Image */}
                             <Link
                                 href={`/categories/${category.id}`}
-                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-2 transition-colors"
+                                className="flex-1 relative min-h-[140px] w-full flex items-center justify-center group mb-4 px-4"
                             >
-                                Tümü <ArrowRight className="ml-1 h-3 w-3" />
+                                {category.images && category.images.length > 0 ? (
+                                    <ImageWithSpinner
+                                        src={category.images[0]}
+                                        alt={category.name}
+                                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-md"
+                                    />
+                                ) : (
+                                    <span className="text-muted-foreground text-sm">Görsel Yok</span>
+                                )}
                             </Link>
+
+                            {/* Bottom: 2x3 Subcategory Grid (Always 2 columns) */}
+                            <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-0 mt-auto">
+                                {category.subcategories.map((sub) => (
+                                    <Link
+                                        key={sub.id}
+                                        href={`/categories/${sub.id}`}
+                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-2 line-clamp-1 transition-colors"
+                                        title={sub.name}
+                                    >
+                                        {sub.name}
+                                    </Link>
+                                ))}
+                                {/* Hepsi (All) Button */}
+                                <Link
+                                    href={`/categories/${category.id}`}
+                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-2 transition-colors"
+                                >
+                                    Tümü <ArrowRight className="ml-1 h-3 w-3" />
+                                </Link>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </section>
     );
 }
@@ -151,6 +153,12 @@ export async function NewProductsSection() {
         <section className="space-y-8">
             <div className="flex items-center justify-between border-b pb-4">
                 <h2 className="text-2xl font-bold tracking-tight">En Yeni Ürünler</h2>
+                <Link
+                    href="/search?q="
+                    className="text-sm font-medium text-primary hover:underline flex items-center"
+                >
+                    Tümünü Gör <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
             </div>
 
             {newProducts.length === 0 ? (

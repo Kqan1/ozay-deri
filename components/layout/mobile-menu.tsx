@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp, Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { FaFacebook, FaInstagram, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
+import { FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { siteConfig } from "@/lib/config";
 
@@ -113,9 +113,15 @@ export default function MobileMenu({ categories, isAdmin }: MobileMenuProps) {
                             Kategoriler
                         </h4>
                         <div className="flex flex-col gap-3">
-                            {categories.map((cat) => (
-                                <CategoryItem key={cat.id} cat={cat} onNavigate={() => setOpen(false)} />
-                            ))}
+                            {categories && categories.length > 0 ? (
+                                categories.map((cat) => (
+                                    <CategoryItem key={cat.id} cat={cat} onNavigate={() => setOpen(false)} />
+                                ))
+                            ) : (
+                                <div className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-xl border border-dashed text-center">
+                                    Henüz kategori bulunmuyor.
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -134,31 +140,13 @@ export default function MobileMenu({ categories, isAdmin }: MobileMenuProps) {
                                     <FaInstagram className="w-6 h-6" />
                                 </Link>
                             )}
-                            {siteConfig.links.facebook && (
+                            {siteConfig.links.tiktok && (
                                 <Link
-                                    href={siteConfig.links.facebook}
+                                    href={siteConfig.links.tiktok}
                                     target="_blank"
-                                    className="text-muted-foreground hover:text-blue-600 transition-colors"
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
                                 >
-                                    <FaFacebook className="w-6 h-6" />
-                                </Link>
-                            )}
-                            {siteConfig.links.twitter && (
-                                <Link
-                                    href={siteConfig.links.twitter}
-                                    target="_blank"
-                                    className="text-muted-foreground hover:text-sky-500 transition-colors"
-                                >
-                                    <FaTwitter className="w-6 h-6" />
-                                </Link>
-                            )}
-                            {siteConfig.links.youtube && (
-                                <Link
-                                    href={siteConfig.links.youtube}
-                                    target="_blank"
-                                    className="text-muted-foreground hover:text-red-600 transition-colors"
-                                >
-                                    <FaYoutube className="w-6 h-6" />
+                                    <FaTiktok className="w-6 h-6" />
                                 </Link>
                             )}
                             {siteConfig.links.whatsapp && (

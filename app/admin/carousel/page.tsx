@@ -336,10 +336,14 @@ export default function CarouselAdminPage() {
                         <form onSubmit={handleSave} className="space-y-6">
                             {/* Görsel */}
                             <div className="space-y-3">
-                                <label className="text-sm font-medium">Arkaplan Görseli (Zorunlu)</label>
+                                <label className="text-sm font-medium">Arkaplan Görseli VEYA Düz Renk (Zorunlu)</label>
                                 {image ? (
                                     <div className="relative w-full aspect-video rounded-lg overflow-hidden border group">
-                                        <ImageWithSpinner src={image} className="w-full h-full object-cover" />
+                                        {image.startsWith('#') ? (
+                                            <div className="w-full h-full" style={{ backgroundColor: image }}></div>
+                                        ) : (
+                                            <ImageWithSpinner src={image} className="w-full h-full object-cover" />
+                                        )}
                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <button
                                                 type="button"
@@ -351,13 +355,25 @@ export default function CarouselAdminPage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <CustomUploadDropzone
-                                        onUploadBegin={() => setIsUploading(true)}
-                                        onUploadComplete={(urls) => {
-                                            setIsUploading(false);
-                                            if (urls.length > 0) setImage(urls[0]);
-                                        }}
-                                    />
+                                    <div className="space-y-4">
+                                        <CustomUploadDropzone
+                                            onUploadBegin={() => setIsUploading(true)}
+                                            onUploadComplete={(urls) => {
+                                                setIsUploading(false);
+                                                if (urls.length > 0) setImage(urls[0]);
+                                            }}
+                                        />
+                                        <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
+                                            <span className="text-sm font-medium text-muted-foreground">veya Düz Renk Kullan:</span>
+                                            <input 
+                                                type="color" 
+                                                value="#000000" 
+                                                onChange={(e) => setImage(e.target.value)} 
+                                                className="h-8 w-16 cursor-pointer border-0 p-0 rounded-md overflow-hidden" 
+                                                title="Renk Seç"
+                                            />
+                                        </div>
+                                    </div>
                                 )}
                             </div>
 

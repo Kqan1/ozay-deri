@@ -20,11 +20,9 @@ export const siteConfig = {
     links: {
         url: "http://localhost:3000",
         github: "https://github.com/Kqan1",
-        instagram: "https://instagram.com/ozayderi",
-        facebook: "https://facebook.com/ozayderi",
-        twitter: "https://twitter.com/ozayderi",
-        youtube: "https://youtube.com/@ozayderi",
-        whatsapp: "https://wa.me/905555555555",
+        instagram: "https://www.instagram.com/ozayleatherdesign/",
+        whatsapp: "https://wa.me/+905559785553",
+        tiktok: "", // İleride eklenecek
     },
     contact: {
         address: "Tahtakale Mahallesi, Güvener İş Hanı\nÖzay Deri & Aksesuar",

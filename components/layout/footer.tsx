@@ -2,13 +2,11 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import {
     FaEnvelope,
-    FaFacebook,
     FaInstagram,
     FaMapMarkerAlt,
     FaPhoneAlt,
-    FaTwitter,
+    FaTiktok,
     FaWhatsapp,
-    FaYoutube,
 } from "react-icons/fa";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -63,17 +61,21 @@ export default async function Footer() {
                     <div className="md:col-span-6 lg:col-span-3">
                         <h3 className="text-lg font-bold mb-6 tracking-tight text-foreground">KATEGORİLER</h3>
                         <ul className="space-y-3">
-                            {categories.map((category) => (
-                                <li key={category.id}>
-                                    <Link
-                                        href={`/categories/${category.id}`}
-                                        className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
-                                    >
-                                        <span className="w-1 h-1 rounded-full bg-primary/50"></span>
-                                        {category.name}
-                                    </Link>
-                                </li>
-                            ))}
+                            {categories && categories.length > 0 ? (
+                                categories.map((category) => (
+                                    <li key={category.id}>
+                                        <Link
+                                            href={`/categories/${category.id}`}
+                                            className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                                        >
+                                            <span className="w-1 h-1 rounded-full bg-primary/50"></span>
+                                            {category.name}
+                                        </Link>
+                                    </li>
+                                ))
+                            ) : (
+                                <li className="text-sm text-muted-foreground italic">Henüz kategori eklenmemiş.</li>
+                            )}
                         </ul>
                     </div>
 
@@ -160,34 +162,14 @@ export default async function Footer() {
                                 <FaInstagram className="w-5 h-5" />
                             </Link>
                         )}
-                        {siteConfig.links.facebook && (
+                        {siteConfig.links.tiktok && (
                             <Link
-                                href={siteConfig.links.facebook}
+                                href={siteConfig.links.tiktok}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-muted"
+                                className="p-2 text-foreground hover:opacity-80 transition-opacity rounded-md hover:bg-muted"
                             >
-                                <FaFacebook className="w-5 h-5" />
-                            </Link>
-                        )}
-                        {siteConfig.links.twitter && (
-                            <Link
-                                href={siteConfig.links.twitter}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors rounded-md hover:bg-muted"
-                            >
-                                <FaTwitter className="w-5 h-5" />
-                            </Link>
-                        )}
-                        {siteConfig.links.youtube && (
-                            <Link
-                                href={siteConfig.links.youtube}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 transition-colors rounded-md hover:bg-muted"
-                            >
-                                <FaYoutube className="w-5 h-5" />
+                                <FaTiktok className="w-5 h-5" />
                             </Link>
                         )}
                         {siteConfig.links.whatsapp && (
