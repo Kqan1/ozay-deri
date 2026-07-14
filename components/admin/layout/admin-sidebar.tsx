@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useAdminMenu } from "@/components/admin/layout/admin-mobile-menu-context";
 import { cn } from "@/lib/utils";
+import pkg from "../../../package.json";
 
 export function AdminSidebar() {
     const pathname = usePathname();
@@ -90,6 +91,12 @@ export function AdminSidebar() {
                             </Link>
                         );
                     })}
+                </div>
+
+                <div className="mt-auto px-4 pb-3 flex justify-center">
+                    <span className="text-[10px] font-mono text-muted-foreground/40 bg-muted/50 px-2 py-0.5 rounded-full border border-border/50">
+                        v{pkg.version}
+                    </span>
                 </div>
 
                 <div className="p-4 border-t space-y-2">

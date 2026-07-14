@@ -76,24 +76,23 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
             <CarouselContent>
                 {displaySlides.map((slide, index) => (
                     <CarouselItem key={slide.id || index}>
-                        <div className={`relative w-full rounded-2xl overflow-hidden border h-[400px] sm:h-[500px] flex items-center justify-center text-center px-4 ${slide.image === 'default' ? 'bg-primary/10 border-primary/20 text-foreground' : 'bg-black/90'}`}>
+                        <div className={`relative w-full rounded-2xl overflow-hidden border h-[400px] sm:h-[500px] flex items-center justify-center text-center px-4 ${slide.image === 'default' ? 'bg-primary/10 border-primary/20 text-foreground' : 'bg-transparent'}`}>
                             {/* Arkaplan Görseli veya Düz Renk */}
                             {slide.image === 'default' ? null : slide.image && slide.image.startsWith('#') ? (
                                 <div className="absolute inset-0 z-0 opacity-100" style={{ backgroundColor: slide.image }}></div>
                             ) : slide.image ? (
-                                <div className="absolute inset-0 z-0 opacity-70">
+                                <div className="absolute inset-0 z-0 opacity-100">
                                     <ImageWithSpinner src={slide.image} alt={slide.title} className="object-cover w-full h-full" />
                                 </div>
                             ) : null}
-                            
-                            {/* Degrade Katmanı (Yazı okunaklılığı için, default değilse) */}
+                            {/* Hafif Degrade Katmanı (Çok ince bir karartı, yazılar okunabilsin diye) */}
                             {slide.image !== 'default' && (
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-0 pointer-events-none"></div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent z-0 pointer-events-none"></div>
                             )}
 
                             <div className="relative z-10 space-y-6 max-w-3xl px-4">
                                 <h1
-                                    className={`${slide.titleSize || "text-4xl sm:text-5xl md:text-6xl"} ${slide.titleWeight || "font-extrabold"} tracking-tight drop-shadow-lg`}
+                                    className={`${slide.titleSize || "text-4xl sm:text-5xl md:text-6xl"} ${slide.titleWeight || "font-extrabold"} tracking-tight`}
                                     style={{ color: slide.titleColor || "#ffffff" }}
                                 >
                                     {slide.title}
@@ -101,7 +100,7 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
 
                                 {slide.description && (
                                     <p
-                                        className={`${slide.descSize || "text-lg sm:text-xl"} drop-shadow-md max-w-2xl mx-auto`}
+                                        className={`${slide.descSize || "text-lg sm:text-xl"} max-w-2xl mx-auto`}
                                         style={{
                                             color: slide.descColor || "#f3f4f6",
                                             fontWeight: slide.descWeight || "normal",
