@@ -5,7 +5,19 @@ import { useTransition, Suspense } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowDownUp } from "lucide-react";
 
-function SortDropdownContent() {
+export type SortOption = {
+    value: string;
+    label: string;
+};
+
+const DEFAULT_OPTIONS: SortOption[] = [
+    { value: "relevance", label: "Önerilen (İlişki)" },
+    { value: "newest", label: "En Yeniler" },
+    { value: "name_asc", label: "A'dan Z'ye" },
+    { value: "name_desc", label: "Z'den A'ya" },
+];
+
+function SortDropdownContent({ options }: { options: SortOption[] }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -37,24 +49,25 @@ function SortDropdownContent() {
                     </div>
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="relevance">Önerilen (İlişki)</SelectItem>
-                    <SelectItem value="newest">En Yeniler</SelectItem>
-                    <SelectItem value="price_asc">Fiyat (Artan)</SelectItem>
-                    <SelectItem value="price_desc">Fiyat (Azalan)</SelectItem>
+                    {options.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </SelectItem>
+                    ))}
                 </SelectContent>
             </Select>
         </div>
     );
 }
 
-export default function SortDropdown() {
+export default function SortDropdown({ options = DEFAULT_OPTIONS }: { options?: SortOption[] }) {
     return (
         <Suspense fallback={
             <div className="flex-1 lg:flex-none">
                 <div className="w-full lg:w-[200px] h-10 border rounded-md bg-muted/20 animate-pulse" />
             </div>
         }>
-            <SortDropdownContent />
+            <SortDropdownContent options={options} />
         </Suspense>
     );
 }

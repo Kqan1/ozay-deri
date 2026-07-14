@@ -99,7 +99,6 @@ export type CreateProductInput = {
     name: string;
     categoryId: string | null;
     isHidden?: boolean;
-    price?: number | null;
     images: string[];
     fields: {
         name: string;
@@ -115,7 +114,6 @@ export async function createProduct(data: CreateProductInput) {
     const product = await prisma.product.create({
         data: {
             name: data.name,
-            price: data.price ?? null,
             categoryId: data.categoryId,
             isHidden: data.isHidden || false,
             images: data.images,
@@ -161,7 +159,6 @@ export async function updateProduct(id: string, data: CreateProductInput) {
         where: { id },
         data: {
             name: data.name,
-            price: data.price ?? null,
             categoryId: data.categoryId,
             isHidden: data.isHidden,
             images: data.images,

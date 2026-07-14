@@ -28,7 +28,6 @@ export default function ProductsAdminPage() {
     // Product Form State
     const [editProductId, setEditProductId] = useState<string | null>(null);
     const [productName, setProductName] = useState("");
-    const [productPrice, setProductPrice] = useState<number | "">("");
     const [productCategoryId, setProductCategoryId] = useState("");
     const [productIsHidden, setProductIsHidden] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -165,7 +164,6 @@ export default function ProductsAdminPage() {
         if (editProductId) {
             await updateProduct(editProductId, {
                 name: productName,
-                price: productPrice === "" ? null : productPrice,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
                 images: images,
@@ -175,7 +173,6 @@ export default function ProductsAdminPage() {
         } else {
             await createProduct({
                 name: productName,
-                price: productPrice === "" ? null : productPrice,
                 categoryId: productCategoryId || null,
                 isHidden: productIsHidden,
                 images: images,
@@ -190,7 +187,6 @@ export default function ProductsAdminPage() {
     function handleEditProduct(prod: any) {
         setEditProductId(prod.id);
         setProductName(prod.name);
-        setProductPrice(prod.price ?? "");
         setProductCategoryId(prod.categoryId || "");
         setProductIsHidden(prod.isHidden || false);
         setImages(prod.images || []);
@@ -233,7 +229,6 @@ export default function ProductsAdminPage() {
         try {
             await updateProduct(prod.id, {
                 name: prod.name,
-                price: prod.price,
                 categoryId: prod.categoryId,
                 isHidden: !prod.isHidden,
                 images: prod.images || [],
@@ -257,7 +252,6 @@ export default function ProductsAdminPage() {
     function resetProductForm() {
         setEditProductId(null);
         setProductName("");
-        setProductPrice("");
         setImages([]);
         setFields([]);
         setProductIsHidden(false);
@@ -340,19 +334,6 @@ export default function ProductsAdminPage() {
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     value={productName}
                                     onChange={(e) => setProductName(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium leading-none">Fiyat (₺)</label>
-                                <input
-                                    type="number"
-                                    placeholder="Örn: 1500"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={productPrice}
-                                    onChange={(e) =>
-                                        setProductPrice(e.target.value === "" ? "" : parseFloat(e.target.value))
-                                    }
                                 />
                             </div>
 
@@ -601,11 +582,6 @@ export default function ProductsAdminPage() {
                                                                                     </span>
                                                                                 )}
                                                                             </div>
-                                                                            {p.price && (
-                                                                                <p className="text-xs font-semibold text-primary">
-                                                                                    {p.price} ₺
-                                                                                </p>
-                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                 </div>

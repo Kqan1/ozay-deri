@@ -1,10 +1,16 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function ImageWithSpinner({ src, alt, className }: { src: string; alt?: string; className?: string }) {
     const [isLoading, setIsLoading] = useState(true);
+    const [currentSrc, setCurrentSrc] = useState(src);
+
+    if (src !== currentSrc) {
+        setCurrentSrc(src);
+        setIsLoading(true);
+    }
 
     return (
         <div className="relative w-full h-full">
@@ -20,6 +26,11 @@ export function ImageWithSpinner({ src, alt, className }: { src: string; alt?: s
                 className={`w-full h-full object-cover ${className || ""} ${isLoading ? "opacity-0" : "opacity-100"} transition-all duration-500`}
                 onLoad={() => setIsLoading(false)}
                 onError={() => setIsLoading(false)}
+                ref={(img) => {
+                    if (img?.complete) {
+                        setIsLoading(false);
+                    }
+                }}
             />
         </div>
     );

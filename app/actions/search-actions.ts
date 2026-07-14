@@ -13,12 +13,6 @@ export async function getLiveSearchSuggestions(query: string) {
       p.name, 
       c.name as "categoryName",
       (
-        SELECT "numberValue" 
-        FROM "ProductField" pf 
-        WHERE pf."productId" = p.id AND pf.name = 'Fiyat'
-        LIMIT 1
-      ) as price,
-      (
         SELECT "stringValue" 
         FROM "ProductField" pf 
         WHERE pf."productId" = p.id AND pf.name = 'Thumbnail'

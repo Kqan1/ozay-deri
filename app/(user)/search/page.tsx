@@ -6,6 +6,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import SidebarFilter from "@/components/shop/sidebar-filter";
 import MobileFilter from "@/components/shop/mobile-filter";
 import SortDropdown from "@/components/shop/sort-dropdown";
+import ProductGridLayout from "@/components/shop/product-grid-layout";
 import ShopPagination from "@/components/shop/shop-pagination";
 import db from "@/lib/db";
 
@@ -19,6 +20,7 @@ export default async function SearchPage({
     const page = Number(resolvedParams.page) || 1;
     const categoryParam = resolvedParams.category as string | undefined;
     const sortParam = resolvedParams.sort as string | undefined;
+    const gridParam = resolvedParams.grid as string | undefined;
     const categoryIds = categoryParam ? categoryParam.split(",") : [];
 
     if (!q) {
@@ -100,8 +102,8 @@ export default async function SearchPage({
     SELECT 
       p.id, 
       p.name, 
+      p.description,
       c.name as "categoryName",
-      p.price,
       (
         SELECT "stringValue" 
         FROM "ProductField" pf 
@@ -124,10 +126,10 @@ export default async function SearchPage({
     )
     ${filterConditions}
     ${
-        sortParam === "price_asc"
-            ? Prisma.sql`ORDER BY p.price ASC NULLS LAST`
-            : sortParam === "price_desc"
-            ? Prisma.sql`ORDER BY p.price DESC NULLS LAST`
+        sortParam === "name_asc"
+            ? Prisma.sql`ORDER BY p.name ASC`
+            : sortParam === "name_desc"
+            ? Prisma.sql`ORDER BY p.name DESC`
             : sortParam === "newest"
             ? Prisma.sql`ORDER BY p."createdAt" DESC`
             : Prisma.sql`ORDER BY GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) DESC`
@@ -170,27 +172,26 @@ export default async function SearchPage({
         ]
     };
     
-    const totalResults = await db.product.count({
-        where: {
-            AND: [
-                searchCondition,
-                categoryIds.length > 0 ? { OR: [{ categoryId: { in: categoryIds } }, { category: { parentId: { in: categoryIds } } }] } : {},
-            ],
-        },
-    });
+    const countResult = await db.$queryRaw<{ count: string }[]>(Prisma.sql`
+        SELECT COUNT(*)::text as count
+        FROM "Product" p
+        LEFT JOIN "Category" c ON p."categoryId" = c.id
+        WHERE (
+            p.name ILIKE ${'%' + q + '%'} OR c.name ILIKE ${'%' + q + '%'}
+        )
+        ${filterConditions}
+    `);
+    
+    const totalCount = parseInt(countResult[0]?.count || "0", 10);
+    const totalPages = Math.ceil(totalCount / 12);
 
-    const totalPages = Math.ceil(totalResults / 12);
-
-    // Helper to build URL with new or removed filter
-    const _buildFilterUrl = (key: string, value?: string) => {
-        const params = new URLSearchParams();
-        params.set("q", q);
-        for (const [k, v] of Object.entries(activeFilters)) {
-            if (k !== key) params.set(k, v.join(","));
-        }
-        if (value) params.set(key, value);
-        return `/search?${params.toString()}`;
-    };
+    const standardProducts = results.map((product) => ({
+        id: product.id,
+        name: product.name,
+        image: product.thumbnail || null,
+        categoryName: product.categoryName,
+        description: product.description || "",
+    }));
 
     return (
         <div className="flex flex-col gap-6">
@@ -217,56 +218,18 @@ export default async function SearchPage({
                 </aside>
 
                 {/* Main Content (Results) */}
-                <main className="flex-1">
-                    <div className="hidden lg:flex justify-end mb-6">
-                        <SortDropdown />
-                    </div>
-                    {results.length === 0 ? (
-                        <div className="text-center py-20 bg-muted/50 border rounded-xl">
-                            <h3 className="text-xl font-medium mb-2 text-foreground">Sonuç Bulunamadı</h3>
-                            <p className="text-muted-foreground text-sm">
-                                "{q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen farklı kelimelerle veya
-                                filtreleri temizleyerek tekrar deneyin.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {results.map((product) => (
-                                <Link key={product.id} href={`/products/${product.id}`} className="group block">
-                                    <div className="aspect-[4/5] relative rounded-xl overflow-hidden bg-card border group-hover:border-primary/50 transition-colors">
-                                        {product.thumbnail ? (
-                                            <ImageWithSpinner
-                                                src={product.thumbnail}
-                                                alt={product.name}
-                                                className="group-hover:scale-105 transition-transform duration-500"
-                                            />
-                                        ) : (
-                                            <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-                                                Görsel Yok
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="mt-4 space-y-1">
-                                        <h3 className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">
-                                            {product.name}
-                                        </h3>
-                                        {product.categoryName && (
-                                            <p className="text-xs text-muted-foreground">{product.categoryName}</p>
-                                        )}
-                                        {product.price && (
-                                            <p className="text-sm font-semibold text-primary mt-2">{product.price} ₺</p>
-                                        )}
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    )}
+                <ProductGridLayout 
+                    products={standardProducts}
+                    totalCount={totalCount}
+                    sortDropdown={<SortDropdown />}
+                    emptyMessage="Sonuç Bulunamadı"
+                    emptyDescription={`"${q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen farklı kelimelerle veya filtreleri temizleyerek tekrar deneyin.`}
+                />
+            </div>
 
-                    {/* Pagination */}
-                    <div className="mt-12 border-t pt-8">
-                        <ShopPagination page={page} totalPages={totalPages} />
-                    </div>
-                </main>
+            {/* Pagination */}
+            <div className="mt-12 border-t pt-8">
+                <ShopPagination page={page} totalPages={totalPages} />
             </div>
         </div>
     );

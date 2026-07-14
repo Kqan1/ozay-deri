@@ -31,7 +31,6 @@ async function seed() {
     
     for (let i = 0; i < BATCH_SIZE; i++) {
         const name = generateProductName();
-        const price = Math.floor(Math.random() * 5000) + 500; // 500 to 5500
         const category = randomElement(targetCategories);
         const color = randomElement(COLORS);
         const brand = randomElement(BRANDS);
@@ -45,7 +44,6 @@ async function seed() {
         await db.product.create({
             data: {
                 name,
-                price,
                 categoryId: category.id,
                 isHidden,
                 images: [thumbnailUrl, galleryImage],

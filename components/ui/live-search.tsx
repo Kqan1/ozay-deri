@@ -210,11 +210,6 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                                             )}
                                         </div>
                                     </div>
-                                    {product.price && (
-                                        <div className="font-bold text-sm text-primary whitespace-nowrap pl-2">
-                                            {product.price} ₺
-                                        </div>
-                                    )}
                                 </Link>
                             </li>
                         ))}

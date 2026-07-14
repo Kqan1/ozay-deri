@@ -130,9 +130,6 @@ export default async function Home() {
                                         {product.category?.name && (
                                             <p className="text-xs text-muted-foreground">{product.category.name}</p>
                                         )}
-                                        {product.price && (
-                                            <p className="text-sm font-semibold text-primary mt-2">{product.price} ₺</p>
-                                        )}
                                     </div>
                                 </Link>
                             );
