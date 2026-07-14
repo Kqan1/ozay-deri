@@ -19,7 +19,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                                 href="/"
                                 className="text-3xl font-bold tracking-tight hover:opacity-80 transition-opacity"
                             >
-                                Özay Deri
+                                Özay Aksesuar
                             </Link>
                         </div>
 

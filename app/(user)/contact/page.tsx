@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FaEnvelope, FaMapMarkerAlt, FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
+import { FaEnvelope, FaMapMarkerAlt, FaPhoneAlt, FaWhatsapp, FaInstagram, FaTiktok } from "react-icons/fa";
 import { siteConfig } from "@/lib/config";
 import MapIframe from "@/components/ui/map-iframe";
 
 export const metadata: Metadata = {
     title: "İletişim",
-    description: "Özay Deri & Aksesuar iletişim bilgileri.",
+    description: "Özay Aksesuar iletişim bilgileri.",
 };
 
 export default function ContactPage() {
@@ -19,7 +19,7 @@ export default function ContactPage() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
                 {/* Adres */}
                 <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-card border shadow-sm transition-transform hover:-translate-y-1 duration-300">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6">
@@ -77,6 +77,38 @@ export default function ContactPage() {
                         className="text-muted-foreground hover:text-green-600 transition-colors font-medium"
                     >
                         +90 555 978 55 53
+                    </Link>
+                </div>
+
+                {/* Instagram */}
+                <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-card border shadow-sm transition-transform hover:-translate-y-1 duration-300">
+                    <div className="w-16 h-16 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-600 mb-6">
+                        <FaInstagram className="w-8 h-8" />
+                    </div>
+                    <h3 className="font-bold text-lg mb-3 text-foreground">Instagram</h3>
+                    <Link
+                        href={siteConfig.links.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-pink-600 transition-colors font-medium"
+                    >
+                        @ozayleatherdesign
+                    </Link>
+                </div>
+
+                {/* TikTok */}
+                <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-card border shadow-sm transition-transform hover:-translate-y-1 duration-300">
+                    <div className="w-16 h-16 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-black dark:text-white mb-6">
+                        <FaTiktok className="w-7 h-7" />
+                    </div>
+                    <h3 className="font-bold text-lg mb-3 text-foreground">TikTok</h3>
+                    <Link
+                        href={siteConfig.links.tiktok}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+                    >
+                        @zay.deri.aksesuar
                     </Link>
                 </div>
             </div>

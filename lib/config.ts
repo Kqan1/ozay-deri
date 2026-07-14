@@ -3,12 +3,12 @@ export type SiteConfig = typeof siteConfig;
 export const siteConfig = {
     metadata: {
         title: {
-            default: "ÖZAY Deri",
-            template: "%s | ÖZAY Deri",
+            default: "ÖZAY Aksesuar",
+            template: "%s | ÖZAY Aksesuar",
         },
         description:
-            "Özay Deri &amp; Aksesuar | Bileklik Aksesuarları, İp &amp; İplik Çeşitleri, Deri Çeşitleri | Tahtakale Mahallesi, Güvener İş Hanı Özay Deri &amp; Aksesuar",
-        applicationName: "Özay Deri",
+            "Özay Aksesuar | Bileklik Aksesuarları, İp &amp; İplik Çeşitleri, Deri Çeşitleri | Tahtakale Mahallesi, Güvener İş Hanı Özay Aksesuar",
+        applicationName: "Özay Aksesuar",
         author: { name: "Kqan", url: "https://github.com/Kqan1" },
         keywords: [""],
         icons: {
@@ -18,14 +18,14 @@ export const siteConfig = {
         generator: "next.js",
     },
     links: {
-        url: "http://localhost:3000",
+        url: "https://ozay-deri-amber.vercel.app/",
         github: "https://github.com/Kqan1",
         instagram: "https://www.instagram.com/ozayleatherdesign/",
         whatsapp: "https://wa.me/+905559785553",
-        tiktok: "", // İleride eklenecek
+        tiktok: "https://www.tiktok.com/@zay.deri.aksesuar?_r=1&_t=ZS-981zV2pxH1x",
     },
     contact: {
-        address: "Tahtakale Mahallesi, Güvener İş Hanı\nÖzay Deri & Aksesuar",
+        address: "Tahtakale Mahallesi, Güvener İş Hanı\nÖzay Aksesuar",
         phones: [
             { label: "+90 555 978 55 53", value: "+905559785553" },
             { label: "+90 212 528 60 62", value: "+902125286062" },

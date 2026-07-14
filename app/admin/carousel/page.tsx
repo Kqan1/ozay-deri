@@ -91,7 +91,7 @@ export default function CarouselAdminPage() {
     const [isUploading, setIsUploading] = useState(false);
 
     const [image, setImage] = useState("default");
-    const [title, setTitle] = useState("Özay Deri'ye Hoşgeldiniz");
+    const [title, setTitle] = useState("Özay Aksesuar'a Hoşgeldiniz");
     const [titleColor, setTitleColor] = useState("currentColor");
     const [titleSize, setTitleSize] = useState("text-4xl sm:text-5xl md:text-6xl");
     const [titleWeight, setTitleWeight] = useState("font-extrabold");
@@ -125,7 +125,7 @@ export default function CarouselAdminPage() {
     function resetForm() {
         setEditSlideId(null);
         setImage("default");
-        setTitle("Özay Deri'ye Hoşgeldiniz");
+        setTitle("Özay Aksesuar'a Hoşgeldiniz");
         setTitleColor("currentColor");
         setTitleSize("text-4xl sm:text-5xl md:text-6xl");
         setTitleWeight("font-extrabold");

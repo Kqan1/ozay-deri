@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SafeImage from "@/components/ui/safe-image";
 import { getServerSession } from "next-auth";
 import {
     FaEnvelope,
@@ -146,7 +147,7 @@ export default async function Footer() {
                     <div className="flex items-center gap-4 order-3 md:order-1 flex-col md:flex-row">
                         <ThemeToggle />
                         <p className="text-sm text-muted-foreground text-center md:text-left">
-                            &copy; {new Date().getFullYear()} ÖZAY Deri / ÖZAY Leather Design. Tüm Hakları Saklıdır.
+                            &copy; {new Date().getFullYear()} ÖZAY Aksesuar / ÖZAY Leather Design. Tüm Hakları Saklıdır.
                         </p>
                     </div>
 
@@ -185,12 +186,12 @@ export default async function Footer() {
                     </div>
 
                     {/* Logo */}
-                    <div className="flex items-center justify-center text-sm text-muted-foreground order-1 md:order-3">
+                    <div className="flex items-center justify-center order-1 md:order-3">
                         <Link
                             href="/"
-                            className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity text-foreground"
+                            className="hover:opacity-80 transition-opacity"
                         >
-                            Özay Deri
+                            <SafeImage src="/logo.png" alt="Özay Aksesuar" width={300} height={300} className="h-24 md:h-32 w-auto object-contain dark:invert" />
                         </Link>
                     </div>
                 </div>

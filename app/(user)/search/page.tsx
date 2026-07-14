@@ -97,6 +97,7 @@ export default async function SearchPage({
         WHERE pf."productId" = p.id AND pf.name = 'Thumbnail'
         LIMIT 1
       ) as thumbnail,
+      p.images[1] as "firstImage",
       GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) as "simScore"
     FROM "Product" p
     LEFT JOIN "Category" c ON p."categoryId" = c.id
@@ -149,7 +150,7 @@ export default async function SearchPage({
     const standardProducts = results.map((product) => ({
         id: product.id,
         name: product.name,
-        image: product.thumbnail || null,
+        image: product.thumbnail || product.firstImage || null,
         categoryName: product.categoryName,
         description: product.description || "",
     }));

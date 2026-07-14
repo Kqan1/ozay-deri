@@ -109,7 +109,7 @@ export default async function CategoryPage({
     const standardProducts = products.map((product) => ({
         id: product.id,
         name: product.name,
-        image: product.fields.find(f => f.name === "Thumbnail")?.stringValue || null,
+        image: product.fields.find(f => f.name === "Thumbnail")?.stringValue || (product.images && product.images.length > 0 ? product.images[0] : null),
         description: product.fields.find(f => f.name.toLowerCase().includes('açıklama') || f.name.toLowerCase().includes('description'))?.stringValue || "",
     }));
 

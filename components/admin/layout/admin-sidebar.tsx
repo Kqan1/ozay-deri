@@ -1,7 +1,8 @@
 "use client";
 
-import { Folders, Globe, Image, LayoutDashboard, LogOut, Package, Settings2, Shield } from "lucide-react";
+import { Folders, Globe, Image as ImageIcon, LayoutDashboard, LogOut, Package, Settings2, Shield } from "lucide-react";
 import Link from "next/link";
+import SafeImage from "@/components/ui/safe-image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useAdminMenu } from "@/components/admin/layout/admin-mobile-menu-context";
@@ -30,7 +31,7 @@ export function AdminSidebar() {
         {
             name: "Carousel Yönetimi",
             href: "/admin/carousel",
-            icon: Image,
+            icon: ImageIcon,
         },
         {
             name: "Özel Alanlar",
@@ -58,9 +59,10 @@ export function AdminSidebar() {
                     isOpen ? "translate-x-0" : "-translate-x-full",
                 )}
             >
-                <div className="h-16 flex items-center px-6 border-b">
-                    <Link href="/" className="font-bold text-lg tracking-tight hover:opacity-80 transition-opacity">
-                        Özay Deri <span className="text-primary font-normal text-sm ml-1">Admin</span>
+                <div className="py-6 flex flex-col items-center justify-center px-4 border-b gap-2">
+                    <Link href="/" className="hover:opacity-80 transition-opacity flex flex-col items-center gap-2">
+                        <SafeImage src="/logo.png" alt="Özay Aksesuar" width={200} height={200} className="h-20 w-auto object-contain dark:invert" priority />
+                        <span className="text-primary font-medium text-sm">Admin Paneli</span>
                     </Link>
                 </div>
 

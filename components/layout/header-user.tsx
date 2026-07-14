@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SafeImage from "@/components/ui/safe-image";
 import { getServerSession } from "next-auth";
 import { FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -25,12 +26,12 @@ export default async function HeaderUser() {
     });
 
     return (
-        <header className="sticky top-0 left-0 right-0 z-50 w-full h-16 border-b bg-card flex items-center justify-between shadow-sm">
+        <header className="sticky top-0 left-0 right-0 z-50 w-full py-3 md:py-4 border-b bg-card flex items-center justify-between shadow-sm">
             <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                 {/* Logo / Brand name */}
                 <div className="flex items-center gap-2">
-                    <Link href="/" className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity">
-                        Özay Deri
+                    <Link href="/" className="hover:opacity-80 transition-opacity">
+                        <SafeImage src="/logo.png" alt="Özay Aksesuar" width={300} height={300} className="h-16 md:h-20 w-auto object-contain dark:invert" priority />
                     </Link>
                 </div>
 

@@ -185,7 +185,9 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                         </span>
                     </div>
                     <ul className="max-h-96 overflow-y-auto p-2 space-y-1">
-                        {results.map((product) => (
+                        {results.map((product) => {
+                            const imageSrc = product.thumbnail || product.firstImage;
+                            return (
                             <li key={product.id}>
                                 <ProductModalLink
                                     productId={product.id}
@@ -196,9 +198,9 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                                     className="flex items-center gap-4 rounded-xl p-2 hover:bg-accent/60 transition-all duration-200 group"
                                 >
                                     <div className="h-12 w-12 shrink-0 rounded-lg bg-muted overflow-hidden relative shadow-sm group-hover:shadow transition-shadow">
-                                        {product.thumbnail ? (
+                                        {imageSrc ? (
                                             <ImageWithSpinner
-                                                src={product.thumbnail}
+                                                src={imageSrc}
                                                 alt={product.name}
                                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                                             />
@@ -222,7 +224,8 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                                     </div>
                                 </ProductModalLink>
                             </li>
-                        ))}
+                            );
+                        })}
                     </ul>
                 </div>
             )}

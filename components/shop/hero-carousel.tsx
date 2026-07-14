@@ -50,7 +50,7 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
     const displaySlides = slides && slides.length > 0 ? slides : [{
         id: "default-slide",
         image: "default",
-        title: "Özay Deri'ye Hoşgeldiniz",
+        title: "Özay Aksesuar'a Hoşgeldiniz",
         titleSize: "text-4xl sm:text-5xl md:text-6xl",
         titleWeight: "font-extrabold",
         titleColor: "currentColor",

@@ -168,7 +168,7 @@ export async function NewProductsSection() {
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
                     {newProducts.map((product) => {
-                        const thumbnail = product.fields[0]?.stringValue;
+                        const thumbnail = product.fields.find(f => f.name === "Thumbnail")?.stringValue || (product.images && product.images.length > 0 ? product.images[0] : null);
 
                         return (
                             <ProductModalLink key={product.id} productId={product.id} className="group block">

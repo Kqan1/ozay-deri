@@ -18,6 +18,7 @@ export async function getLiveSearchSuggestions(query: string) {
         WHERE pf."productId" = p.id AND pf.name = 'Thumbnail'
         LIMIT 1
       ) as thumbnail,
+      p.images[1] as "firstImage",
       GREATEST(
         similarity(p.name, ${query}),
         COALESCE(similarity(c.name, ${query}), 0)
