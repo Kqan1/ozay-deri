@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import GridSelector from "./grid-selector";
 import Link from "next/link";
 import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
+import { useSearchParams, usePathname } from "next/navigation";
+import ProductModalLink from "./product-modal-link";
 
 export type StandardProduct = {
     id: string;
@@ -26,6 +28,8 @@ export default function ProductGridLayout({
     emptyMessage?: string, 
     emptyDescription?: string 
 }) {
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
     const [gridParam, setGridParam] = useState("4");
 
     useEffect(() => {
@@ -40,17 +44,12 @@ export default function ProductGridLayout({
         localStorage.setItem("preferredGrid", val);
     };
 
-    let gridClasses = "grid gap-6 ";
+    let gridClasses = "grid gap-3 md:gap-6 ";
     let cardClasses = "group block h-full";
     let imageWrapperClasses = "aspect-[4/5] relative rounded-xl overflow-hidden bg-card border group-hover:border-primary/50 transition-colors";
     let contentWrapperClasses = "mt-4 space-y-1";
 
-    if (gridParam === "list") {
-        gridClasses += "grid-cols-1";
-        cardClasses = "group flex flex-col sm:flex-row gap-4 sm:gap-6 items-start border rounded-xl p-4 bg-card hover:border-primary/50 transition-colors h-full";
-        imageWrapperClasses = "w-full sm:w-48 shrink-0 aspect-[4/5] sm:aspect-square relative rounded-lg overflow-hidden bg-muted border";
-        contentWrapperClasses = "flex-1 space-y-2 mt-0";
-    } else if (gridParam === "2") {
+    if (gridParam === "2") {
         gridClasses += "grid-cols-2";
     } else if (gridParam === "3") {
         gridClasses += "grid-cols-2 md:grid-cols-3";
@@ -79,7 +78,7 @@ export default function ProductGridLayout({
             ) : (
                 <div className={gridClasses}>
                     {products.map((product) => (
-                        <Link key={product.id} href={`/products/${product.id}`} className={cardClasses}>
+                        <ProductModalLink key={product.id} productId={product.id} className={cardClasses}>
                             <div className={imageWrapperClasses}>
                                 {product.image ? (
                                     <ImageWithSpinner
@@ -100,13 +99,8 @@ export default function ProductGridLayout({
                                 {product.categoryName && (
                                     <p className="text-xs text-muted-foreground">{product.categoryName}</p>
                                 )}
-                                {gridParam === "list" && (
-                                    <div className="text-sm text-muted-foreground line-clamp-3 mt-2">
-                                        {product.description || "Bu ürün için henüz bir açıklama girilmemiştir."}
-                                    </div>
-                                )}
                             </div>
-                        </Link>
+                        </ProductModalLink>
                     ))}
                 </div>
             )}

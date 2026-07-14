@@ -3,7 +3,8 @@
 import { Loader2, Search, X } from "lucide-react";
 import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import ProductModalLink from "@/components/shop/product-modal-link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState, Suspense } from "react";
 import { getLiveSearchSuggestions } from "@/app/actions/search-actions";
@@ -17,6 +18,7 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
     const [isFocused, setIsFocused] = useState(false);
     
     const router = useRouter();
+    const pathname = usePathname();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const isTypingRef = useRef(false);
@@ -179,8 +181,8 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                     <ul className="max-h-96 overflow-y-auto p-2 space-y-1">
                         {results.map((product) => (
                             <li key={product.id}>
-                                <Link
-                                    href={`/products/${product.id}`}
+                                <ProductModalLink
+                                    productId={product.id}
                                     onClick={() => {
                                         setIsOpen(false);
                                         inputRef.current?.blur();
@@ -210,7 +212,7 @@ function LiveSearchContent({ forceVisible = false }: { forceVisible?: boolean })
                                             )}
                                         </div>
                                     </div>
-                                </Link>
+                                </ProductModalLink>
                             </li>
                         ))}
                     </ul>

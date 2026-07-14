@@ -11,6 +11,7 @@ import Providers from "@/components/providers/providers";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { fontSans } from "@/utils/fonts";
+import GlobalProductModal from "@/components/shop/global-product-modal";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                         </main>
                         <Footer />
                     </div>
+                    <GlobalProductModal />
                 </Providers>
             </body>
         </html>

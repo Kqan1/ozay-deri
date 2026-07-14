@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 
 export default function GridSelector({ currentGrid, onChange }: { currentGrid: string, onChange: (val: string) => void }) {
     const options = [
-        { value: "list", icon: LayoutList, title: "Liste Görünümü", hiddenOnMobile: false },
         { value: "2", icon: Grid2x2, title: "2'li Grid", hiddenOnMobile: false },
         { value: "3", icon: Grid3x3, title: "3'lü Grid", hiddenOnMobile: true },
         { value: "4", icon: LayoutGrid, title: "4'lü Grid", hiddenOnMobile: true },

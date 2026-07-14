@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import ProductModalLink from "@/components/shop/product-modal-link";
 import db from "@/lib/db";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
 import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
@@ -104,12 +105,12 @@ export default async function Home() {
                         Henüz ürün eklenmemiş.
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
                         {newProducts.map((product) => {
                             const thumbnail = product.fields[0]?.stringValue;
 
                             return (
-                                <Link key={product.id} href={`/products/${product.id}`} className="group block">
+                                <ProductModalLink key={product.id} productId={product.id} className="group block">
                                     <div className="aspect-[4/5] relative rounded-xl overflow-hidden bg-card border group-hover:border-primary/50 transition-colors">
                                         {thumbnail ? (
                                             <ImageWithSpinner
@@ -131,7 +132,7 @@ export default async function Home() {
                                             <p className="text-xs text-muted-foreground">{product.category.name}</p>
                                         )}
                                     </div>
-                                </Link>
+                                </ProductModalLink>
                             );
                         })}
                     </div>

@@ -102,7 +102,12 @@ export default async function SearchPage({
     SELECT 
       p.id, 
       p.name, 
-      p.description,
+      (
+        SELECT "stringValue" 
+        FROM "ProductField" pf 
+        WHERE pf."productId" = p.id AND pf.name IN ('Açıklama', 'Description')
+        LIMIT 1
+      ) as description,
       c.name as "categoryName",
       (
         SELECT "stringValue" 
