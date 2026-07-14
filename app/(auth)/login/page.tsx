@@ -56,8 +56,10 @@ function LoginForm() {
 
                 // Get redirect url or default to home page
                 const callbackUrl = searchParams.get("callbackUrl") || "/";
-                router.push(callbackUrl);
-                router.refresh();
+                // Next.js App Router agresif bir şekilde client cache tutar.
+                // Eğer daha önce yetkisiz olarak admin paneline girilmeye çalışıldıysa router cache "redirect"i hatırlar.
+                // Bu yüzden window.location.href ile tam sayfa yenilemesi yapıyoruz.
+                window.location.href = callbackUrl;
             }
         } catch (error: any) {
             toast.dismiss(loginToastId);

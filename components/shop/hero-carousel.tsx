@@ -49,13 +49,13 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
 
     const displaySlides = slides && slides.length > 0 ? slides : [{
         id: "default-slide",
-        image: "",
+        image: "default",
         title: "Özay Deri'ye Hoşgeldiniz",
         titleSize: "text-4xl sm:text-5xl md:text-6xl",
         titleWeight: "font-extrabold",
-        titleColor: "#ffffff",
+        titleColor: "currentColor",
         description: "Yönetim panelinden carousel slaytlarınızı eklemeye başlayabilirsiniz.",
-        descColor: "#f3f4f6",
+        descColor: "currentColor",
         descSize: "text-lg sm:text-xl",
         isActive: true,
         order: 0,
@@ -76,19 +76,20 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
             <CarouselContent>
                 {displaySlides.map((slide, index) => (
                     <CarouselItem key={slide.id || index}>
-                        <div className="relative w-full rounded-2xl overflow-hidden bg-black/90 border h-[400px] sm:h-[500px] flex items-center justify-center text-center px-4">
+                        <div className={`relative w-full rounded-2xl overflow-hidden border h-[400px] sm:h-[500px] flex items-center justify-center text-center px-4 ${slide.image === 'default' ? 'bg-primary/10 border-primary/20 text-foreground' : 'bg-black/90'}`}>
                             {/* Arkaplan Görseli veya Düz Renk */}
-                            {slide.image && slide.image.startsWith('#') ? (
+                            {slide.image === 'default' ? null : slide.image && slide.image.startsWith('#') ? (
                                 <div className="absolute inset-0 z-0 opacity-100" style={{ backgroundColor: slide.image }}></div>
                             ) : slide.image ? (
                                 <div className="absolute inset-0 z-0 opacity-70">
                                     <ImageWithSpinner src={slide.image} alt={slide.title} className="object-cover w-full h-full" />
                                 </div>
-                            ) : (
-                                <div className="absolute inset-0 z-0 opacity-100 bg-primary/40"></div>
+                            ) : null}
+                            
+                            {/* Degrade Katmanı (Yazı okunaklılığı için, default değilse) */}
+                            {slide.image !== 'default' && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-0 pointer-events-none"></div>
                             )}
-                            {/* Degrade Katmanı (Yazı okunaklılığı için) */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-0 pointer-events-none"></div>
 
                             <div className="relative z-10 space-y-6 max-w-3xl px-4">
                                 <h1

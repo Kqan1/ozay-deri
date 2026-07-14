@@ -90,18 +90,20 @@ export default function CarouselAdminPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
-    const [image, setImage] = useState("");
-    const [title, setTitle] = useState("");
-    const [titleColor, setTitleColor] = useState("#ffffff");
+    const [image, setImage] = useState("default");
+    const [title, setTitle] = useState("Özay Deri'ye Hoşgeldiniz");
+    const [titleColor, setTitleColor] = useState("currentColor");
     const [titleSize, setTitleSize] = useState("text-4xl sm:text-5xl md:text-6xl");
     const [titleWeight, setTitleWeight] = useState("font-extrabold");
 
-    const [description, setDescription] = useState("");
-    const [descColor, setDescColor] = useState("#f3f4f6");
+    const [description, setDescription] = useState("Yönetim panelinden carousel slaytlarınızı eklemeye başlayabilirsiniz.");
+    const [descColor, setDescColor] = useState("currentColor");
     const [descSize, setDescSize] = useState("text-lg sm:text-xl");
     const [descWeight, setDescWeight] = useState("font-normal");
 
-    const [buttons, setButtons] = useState<{ text: string; link: string; variant: string; icon?: string }[]>([]);
+    const [buttons, setButtons] = useState<{ text: string; link: string; variant: string; icon?: string }[]>([
+        { text: "Ürünleri İncele", link: "/search", variant: "default", icon: "ShoppingBag" }
+    ]);
 
     const [isActive, setIsActive] = useState(true);
     const [previewSlideId, setPreviewSlideId] = useState<string | null>(null);
@@ -122,16 +124,16 @@ export default function CarouselAdminPage() {
 
     function resetForm() {
         setEditSlideId(null);
-        setImage("");
-        setTitle("");
-        setTitleColor("#ffffff");
+        setImage("default");
+        setTitle("Özay Deri'ye Hoşgeldiniz");
+        setTitleColor("currentColor");
         setTitleSize("text-4xl sm:text-5xl md:text-6xl");
         setTitleWeight("font-extrabold");
-        setDescription("");
-        setDescColor("#f3f4f6");
+        setDescription("Yönetim panelinden carousel slaytlarınızı eklemeye başlayabilirsiniz.");
+        setDescColor("currentColor");
         setDescSize("text-lg sm:text-xl");
         setDescWeight("font-normal");
-        setButtons([]);
+        setButtons([{ text: "Ürünleri İncele", link: "/search", variant: "default", icon: "ShoppingBag" }]);
         setIsActive(true);
     }
 
@@ -161,8 +163,8 @@ export default function CarouselAdminPage() {
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
-        if (!image || !title || isSubmitting) {
-            toast.error("Lütfen görsel ve başlık alanlarını doldurun.");
+        if (!title || isSubmitting) {
+            toast.error("Lütfen başlık alanını doldurun.");
             return;
         }
 
@@ -239,10 +241,10 @@ export default function CarouselAdminPage() {
     }
 
     async function handleRemoveImage() {
-        if (image) {
+        if (image && image !== "default" && !image.startsWith('#')) {
             await deleteUploadThingImage(image);
-            setImage("");
         }
+        setImage("default");
     }
 
     // Move slide up or down
@@ -287,7 +289,7 @@ export default function CarouselAdminPage() {
 
     const previewSlide: CarouselSlideData = {
         id: "preview",
-        image: image || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1600&q=80",
+        image: image || "default",
         title: title || "Örnek Başlık",
         titleColor,
         titleSize,
@@ -336,8 +338,8 @@ export default function CarouselAdminPage() {
                         <form onSubmit={handleSave} className="space-y-6">
                             {/* Görsel */}
                             <div className="space-y-3">
-                                <label className="text-sm font-medium">Arkaplan Görseli VEYA Düz Renk (Zorunlu)</label>
-                                {image ? (
+                                <label className="text-sm font-medium">Arkaplan Görseli VEYA Düz Renk (İsteğe Bağlı)</label>
+                                {image && image !== "default" ? (
                                     <div className="relative w-full aspect-video rounded-lg overflow-hidden border group">
                                         {image.startsWith('#') ? (
                                             <div className="w-full h-full" style={{ backgroundColor: image }}></div>
@@ -372,6 +374,9 @@ export default function CarouselAdminPage() {
                                                 className="h-8 w-16 cursor-pointer border-0 p-0 rounded-md overflow-hidden" 
                                                 title="Renk Seç"
                                             />
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            Not: Boş bırakırsanız sistem temasındaki kart görünümü varsayılan arkaplan olacaktır.
                                         </div>
                                     </div>
                                 )}
