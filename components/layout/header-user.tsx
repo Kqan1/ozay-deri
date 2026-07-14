@@ -31,7 +31,7 @@ export default async function HeaderUser() {
                 {/* Logo / Brand name */}
                 <div className="flex items-center gap-2">
                     <Link href="/" className="hover:opacity-80 transition-opacity">
-                        <SafeImage src="/logo.png" alt="Özay Aksesuar" width={300} height={300} className="h-16 md:h-20 w-auto object-contain dark:invert" priority />
+                        <SafeImage src="/logo.png" alt="Özay Aksesuar" width={300} height={300} className="h-12 md:h-16 w-auto object-contain dark:invert" priority />
                     </Link>
                 </div>
 
