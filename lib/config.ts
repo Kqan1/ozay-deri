@@ -36,7 +36,7 @@ export const siteConfig = {
     },
     quickLinks: [
         { label: "Ana Sayfa", href: "/" },
-        { label: "Tüm Ürünler", href: "/shop" },
+        { label: "Tüm Ürünler", href: "/search" },
         { label: "İletişim", href: "/contact" },
     ],
 };

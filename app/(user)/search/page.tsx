@@ -12,20 +12,11 @@ export default async function SearchPage({
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
     const resolvedParams = await searchParams;
-    const q = resolvedParams.q as string;
+    const q = (resolvedParams.q as string) || "";
     const page = Number(resolvedParams.page) || 1;
     const categoryParam = resolvedParams.category as string | undefined;
     const sortParam = resolvedParams.sort as string | undefined;
     const categoryIds = categoryParam ? categoryParam.split(",") : [];
-
-    if (!q) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
-                <h2 className="text-2xl font-semibold mb-2">Arama</h2>
-                <p className="text-neutral-400">Lütfen aramak istediğiniz kelimeyi giriniz.</p>
-            </div>
-        );
-    }
 
     const categories = await db.category.findMany({
         where: { isHidden: false },
@@ -101,7 +92,8 @@ export default async function SearchPage({
       GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) as "simScore"
     FROM "Product" p
     LEFT JOIN "Category" c ON p."categoryId" = c.id
-    WHERE (
+    WHERE 1=1
+    ${q ? Prisma.sql`AND (
        similarity(p.name, ${q}) > 0.1
        OR similarity(c.name, ${q}) > 0.1
        OR EXISTS (
@@ -111,7 +103,7 @@ export default async function SearchPage({
             AND fd."isSearchable" = true
             AND similarity(pf."stringValue", ${q}) > 0.1
        )
-    )
+    )` : Prisma.empty}
     ${filterConditions}
     ${
         sortParam === "name_asc"
@@ -120,7 +112,7 @@ export default async function SearchPage({
             ? Prisma.sql`ORDER BY p.name DESC`
             : sortParam === "newest"
             ? Prisma.sql`ORDER BY p."createdAt" DESC`
-            : Prisma.sql`ORDER BY GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) DESC`
+            : q ? Prisma.sql`ORDER BY GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) DESC` : Prisma.sql`ORDER BY p."createdAt" DESC`
     }
     LIMIT 12 OFFSET ${(page - 1) * 12}
   `;
@@ -138,9 +130,8 @@ export default async function SearchPage({
         SELECT COUNT(*)::text as count
         FROM "Product" p
         LEFT JOIN "Category" c ON p."categoryId" = c.id
-        WHERE (
-            p.name ILIKE ${'%' + q + '%'} OR c.name ILIKE ${'%' + q + '%'}
-        )
+        WHERE 1=1
+        ${q ? Prisma.sql`AND (p.name ILIKE ${'%' + q + '%'} OR c.name ILIKE ${'%' + q + '%'})` : Prisma.empty}
         ${filterConditions}
     `);
     
@@ -163,15 +154,15 @@ export default async function SearchPage({
             products={standardProducts}
             filterOptions={filterOptions}
             categories={categories}
-            emptyMessage="Sonuç Bulunamadı"
-            emptyDescription={`"${q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen farklı kelimelerle veya filtreleri temizleyerek tekrar deneyin.`}
+            emptyMessage="Ürün Bulunamadı"
+            emptyDescription={q ? `"${q}" için arama kriterlerinize uyan bir ürün bulamadık. Lütfen farklı kelimelerle veya filtreleri temizleyerek tekrar deneyin.` : "Kriterlerinize uyan bir ürün bulunamadı."}
             headerChildren={
                 <div className="flex items-center text-sm text-muted-foreground space-x-2">
                     <Link href="/" className="hover:text-foreground transition-colors">
                         Ana Sayfa
                     </Link>
                     <ChevronRight size={14} />
-                    <span className="text-foreground">&quot;{q}&quot; için sonuçlar</span>
+                    <span className="text-foreground">{q ? `"${q}" için sonuçlar` : "Tüm Ürünler"}</span>
                 </div>
             }
         />
