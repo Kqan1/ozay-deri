@@ -93,7 +93,20 @@ export default async function Footer() {
                                 </li>
                             </ul>
                             
-                            <div className="w-full h-48 md:h-[220px] rounded-lg overflow-hidden border bg-muted -mt-2 md:mt-0">
+                            <div className="w-full h-48 md:h-[220px] rounded-lg overflow-hidden border bg-muted -mt-2 md:mt-0 relative group">
+                                {/* Clickable overlay to open map without trapping scroll */}
+                                <a 
+                                    href={siteConfig.contact.mapIframeUrl.replace("&output=embed", "")} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="absolute inset-0 z-10 flex items-center justify-center bg-black/10 md:bg-black/0 md:group-hover:bg-black/20 transition-all duration-300"
+                                    title="Google Haritalar'da Aç"
+                                >
+                                    <div className="opacity-100 md:opacity-0 md:group-hover:opacity-100 bg-background text-foreground px-4 py-2 rounded-md font-medium text-sm shadow-lg transition-opacity duration-300 flex items-center gap-2">
+                                        <FaMapMarkerAlt className="w-4 h-4 text-primary" />
+                                        Haritada Aç
+                                    </div>
+                                </a>
                                 <iframe 
                                     src={siteConfig.contact.mapIframeUrl} 
                                     width="100%" 
@@ -102,6 +115,7 @@ export default async function Footer() {
                                     allowFullScreen 
                                     loading="lazy" 
                                     referrerPolicy="no-referrer-when-downgrade"
+                                    className="pointer-events-none"
                                 ></iframe>
                             </div>
                         </div>

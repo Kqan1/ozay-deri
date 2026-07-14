@@ -12,10 +12,16 @@ export default async function Home() {
             isHidden: false,
             parentId: null,
         },
+        include: {
+            subcategories: {
+                where: { isHidden: false },
+                take: 5,
+            }
+        },
         orderBy: {
             createdAt: "desc",
         },
-        take: 4, // limit to 4 to show nicely as cards
+        take: 4,
     });
 
     // 2. Fetch Newest Products
@@ -65,30 +71,50 @@ export default async function Home() {
                         </Link>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                         {topCategories.map((category) => (
-                            <Link key={category.id} href={`/categories/${category.id}`} className="group block">
-                                <div className="relative h-48 w-full bg-card border rounded-xl overflow-hidden flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 transition-colors shadow-sm hover:shadow-md group">
-                                    {category.images && category.images.length > 0 && (
-                                        <>
-                                            <ImageWithSpinner 
-                                                src={category.images[0]} 
-                                                alt={category.name} 
-                                                className="z-0 group-hover:scale-105 transition-transform duration-500" 
-                                            />
-                                            <div className="absolute inset-0 bg-black/40 z-0 group-hover:bg-black/50 transition-colors pointer-events-none"></div>
-                                        </>
-                                    )}
-                                    <div className="relative z-10 flex flex-col items-center">
-                                        <h3 className={`text-xl font-bold transition-colors ${category.images && category.images.length > 0 ? "text-white" : "text-foreground group-hover:text-primary"}`}>
-                                            {category.name}
-                                        </h3>
-                                        <span className={`text-sm mt-2 group-hover:underline ${category.images && category.images.length > 0 ? "text-gray-200" : "text-muted-foreground"}`}>
-                                            İncele
-                                        </span>
-                                    </div>
+                            <div key={category.id} className="bg-card text-card-foreground border rounded-xl shadow-sm hover:border-primary/50 transition-colors flex flex-col h-full overflow-hidden">
+                                {/* Top: Title */}
+                                <div className="px-4 pt-4 pb-2 text-center">
+                                    <h3 className="text-xl font-semibold tracking-tight">
+                                        {category.name}
+                                    </h3>
                                 </div>
-                            </Link>
+                                
+                                {/* Middle: Floating Image */}
+                                <Link href={`/categories/${category.id}`} className="flex-1 relative min-h-[140px] w-full flex items-center justify-center group mb-4 px-4">
+                                    {category.images && category.images.length > 0 ? (
+                                        <ImageWithSpinner 
+                                            src={category.images[0]} 
+                                            alt={category.name} 
+                                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-md" 
+                                        />
+                                    ) : (
+                                        <span className="text-muted-foreground text-sm">Görsel Yok</span>
+                                    )}
+                                </Link>
+
+                                {/* Bottom: 2x3 Subcategory Grid (Always 2 columns) */}
+                                <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-0 mt-auto">
+                                    {category.subcategories.map((sub) => (
+                                        <Link 
+                                            key={sub.id} 
+                                            href={`/categories/${sub.id}`}
+                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-2 line-clamp-1 transition-colors"
+                                            title={sub.name}
+                                        >
+                                            {sub.name}
+                                        </Link>
+                                    ))}
+                                    {/* Hepsi (All) Button */}
+                                    <Link 
+                                        href={`/categories/${category.id}`}
+                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium border border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-2 transition-colors"
+                                    >
+                                        Tümü <ArrowRight className="ml-1 h-3 w-3" />
+                                    </Link>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </section>

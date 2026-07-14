@@ -264,14 +264,14 @@ export default function CategoriesAdminPage() {
                                 <ImageIcon className="w-4 h-4" /> Kategori Görseli
                             </h3>
                             <SortableImageGallery images={images} onImagesChange={handleImagesChange} />
-                            {images.length < 50 && (
+                            {images.length < 1 && (
                                 <CustomUploadDropzone
                                     onUploadBegin={() => setIsUploading(true)}
                                     onUploadComplete={(urls) => {
                                         setIsUploading(false);
                                         if (urls.length > 0) {
-                                            setImages((prev) => [...prev, ...urls]);
-                                            setNewImages((prev) => [...prev, ...urls]);
+                                            setImages([urls[0]]);
+                                            setNewImages([urls[0]]);
                                         }
                                     }}
                                 />

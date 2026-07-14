@@ -68,12 +68,12 @@ export default function MobileMenu({ categories, isAdmin }: MobileMenuProps) {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <button className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none transition-colors">
                     <Menu className="w-6 h-6" />
                     <span className="sr-only">Menüyü aç</span>
-                </Button>
+                </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto p-6 sm:p-8 pb-20">
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto p-6 sm:p-8 pb-20 !h-[calc(100dvh-2rem)] !m-4 rounded-3xl border shadow-2xl">
                 <SheetHeader className="mb-8 flex flex-row items-center justify-between space-y-0">
                     <SheetTitle className="text-left font-bold text-2xl tracking-tight">Özay Deri</SheetTitle>
                 </SheetHeader>
