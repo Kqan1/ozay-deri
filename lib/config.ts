@@ -20,7 +20,7 @@ export const siteConfig = {
     links: {
         url: "https://ozay-deri-amber.vercel.app/",
         github: "https://github.com/Kqan1",
-        instagram: "https://www.instagram.com/ozayleatherdesign/",
+        instagram: "https://www.instagram.com/ozayaksesuar?igsh=MXg3cTdvYmI2c3dlZQ==",
         whatsapp: "https://wa.me/+905559785553",
         tiktok: "https://www.tiktok.com/@zay.deri.aksesuar?_r=1&_t=ZS-981zV2pxH1x",
     },
