@@ -108,7 +108,7 @@ export default function ContactPage() {
                         rel="noopener noreferrer"
                         className="text-muted-foreground hover:text-foreground transition-colors font-medium"
                     >
-                        @zay.deri.aksesuar
+                        @ozay.deri.aksesuar
                     </Link>
                 </div>
             </div>
