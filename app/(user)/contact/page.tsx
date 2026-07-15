@@ -92,7 +92,7 @@ export default function ContactPage() {
                         rel="noopener noreferrer"
                         className="text-muted-foreground hover:text-pink-600 transition-colors font-medium"
                     >
-                        @ozayleatherdesign
+                        @ozayaksesuar
                     </Link>
                 </div>
 
