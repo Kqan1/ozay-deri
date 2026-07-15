@@ -90,20 +90,18 @@ export default function CarouselAdminPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
-    const [image, setImage] = useState("default");
-    const [title, setTitle] = useState("Özay Aksesuar'a Hoşgeldiniz");
+    const [image, setImage] = useState("");
+    const [title, setTitle] = useState("");
     const [titleColor, setTitleColor] = useState("currentColor");
     const [titleSize, setTitleSize] = useState("text-4xl sm:text-5xl md:text-6xl");
     const [titleWeight, setTitleWeight] = useState("font-extrabold");
 
-    const [description, setDescription] = useState("Yönetim panelinden carousel slaytlarınızı eklemeye başlayabilirsiniz.");
+    const [description, setDescription] = useState("");
     const [descColor, setDescColor] = useState("currentColor");
     const [descSize, setDescSize] = useState("text-lg sm:text-xl");
     const [descWeight, setDescWeight] = useState("font-normal");
 
-    const [buttons, setButtons] = useState<{ text: string; link: string; variant: string; icon?: string }[]>([
-        { text: "Ürünleri İncele", link: "/search", variant: "default", icon: "ShoppingBag" }
-    ]);
+    const [buttons, setButtons] = useState<{ text: string; link: string; variant: string; icon?: string }[]>([]);
 
     const [isActive, setIsActive] = useState(true);
     const [previewSlideId, setPreviewSlideId] = useState<string | null>(null);
@@ -124,16 +122,16 @@ export default function CarouselAdminPage() {
 
     function resetForm() {
         setEditSlideId(null);
-        setImage("default");
-        setTitle("Özay Aksesuar'a Hoşgeldiniz");
+        setImage("");
+        setTitle("");
         setTitleColor("currentColor");
         setTitleSize("text-4xl sm:text-5xl md:text-6xl");
         setTitleWeight("font-extrabold");
-        setDescription("Yönetim panelinden carousel slaytlarınızı eklemeye başlayabilirsiniz.");
+        setDescription("");
         setDescColor("currentColor");
         setDescSize("text-lg sm:text-xl");
         setDescWeight("font-normal");
-        setButtons([{ text: "Ürünleri İncele", link: "/search", variant: "default", icon: "ShoppingBag" }]);
+        setButtons([]);
         setIsActive(true);
     }
 
@@ -163,10 +161,7 @@ export default function CarouselAdminPage() {
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
-        if (!title || isSubmitting) {
-            toast.error("Lütfen başlık alanını doldurun.");
-            return;
-        }
+        if (isSubmitting) return;
 
         setIsSubmitting(true);
         const data = {
@@ -290,18 +285,15 @@ export default function CarouselAdminPage() {
     const previewSlide: CarouselSlideData = {
         id: "preview",
         image: image || "default",
-        title: title || "Örnek Başlık",
+        title: title,
         titleColor,
         titleSize,
         titleWeight,
-        description: description || "Örnek açıklama metni burada görünecek.",
+        description: description,
         descColor,
         descSize,
         descWeight,
-        buttons:
-            buttons.length > 0
-                ? buttons
-                : [{ text: "Örnek Buton", link: "#", variant: "default", icon: "ShoppingBag" }],
+        buttons: buttons,
         isActive: true,
         order: 0,
     };
@@ -384,10 +376,9 @@ export default function CarouselAdminPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2 space-y-2">
-                                    <label className="text-sm font-medium">Başlık (Zorunlu)</label>
+                                    <label className="text-sm font-medium">Başlık</label>
                                     <input
                                         type="text"
-                                        required
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}

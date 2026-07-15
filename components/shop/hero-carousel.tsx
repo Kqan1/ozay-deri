@@ -82,13 +82,16 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
                                 <div className="absolute inset-0 z-0 opacity-100" style={{ backgroundColor: slide.image }}></div>
                             ) : slide.image ? (
                                 <div className="absolute inset-0 z-0 opacity-100">
-                                    <ImageWithSpinner src={slide.image} alt={slide.title} className="object-cover w-full h-full" />
+                                    <ImageWithSpinner 
+                                        src={slide.image} 
+                                        alt={slide.title || "Carousel Image"} 
+                                        className="object-cover w-full h-full" 
+                                        sizes="100vw"
+                                        priority={index === 0}
+                                    />
                                 </div>
                             ) : null}
-                            {/* Hafif Degrade Katmanı (Çok ince bir karartı, yazılar okunabilsin diye) */}
-                            {slide.image !== 'default' && (
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent z-0 pointer-events-none"></div>
-                            )}
+
 
                             <div className="relative z-10 space-y-6 max-w-3xl px-4">
                                 <h1

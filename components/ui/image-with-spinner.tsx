@@ -4,7 +4,19 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import SafeImage from "@/components/ui/safe-image";
 
-export function ImageWithSpinner({ src, alt, className }: { src: string; alt?: string; className?: string }) {
+export function ImageWithSpinner({ 
+    src, 
+    alt, 
+    className,
+    sizes,
+    priority
+}: { 
+    src: string; 
+    alt?: string; 
+    className?: string;
+    sizes?: string;
+    priority?: boolean;
+}) {
     const [isLoading, setIsLoading] = useState(true);
     const [currentSrc, setCurrentSrc] = useState(src);
 
@@ -24,7 +36,8 @@ export function ImageWithSpinner({ src, alt, className }: { src: string; alt?: s
                 src={src}
                 alt={alt || ""}
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={priority}
+                sizes={sizes || "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
                 className={`object-cover ${className || ""} ${isLoading ? "opacity-0" : "opacity-100"} transition-opacity duration-500`}
                 onLoad={() => setIsLoading(false)}
                 onError={() => setIsLoading(false)}
