@@ -1,8 +1,38 @@
+import type { Metadata, ResolvingMetadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductCatalogLayout from "@/components/shop/product-catalog-layout";
 import db from "@/lib/db";
 import { getFilterOptions, buildFilterConditions } from "@/lib/services/product-service";
+
+export async function generateMetadata(
+    { params }: { params: Promise<{ categoryId: string }> },
+    parent: ResolvingMetadata
+): Promise<Metadata> {
+    const resolvedParams = await params;
+    const category = await db.category.findUnique({
+        where: { id: resolvedParams.categoryId },
+    });
+
+    if (!category) {
+        return {
+            title: "Kategori Bulunamadı",
+        };
+    }
+
+    const previousImages = (await parent).openGraph?.images || [];
+
+    return {
+        title: category.name,
+        description: `${category.name} kategorisindeki ürünleri inceleyin. ÖZAY Aksesuar'da en uygun fiyatlarla.`,
+        openGraph: {
+            title: `${category.name} | ÖZAY Aksesuar`,
+            description: `${category.name} kategorisindeki ürünleri inceleyin.`,
+            url: `https://özayderiaksesuar.com/categories/${category.id}`,
+            images: category.images && category.images.length > 0 ? [category.images[0], ...previousImages] : previousImages,
+        },
+    };
+}
 
 export default async function CategoryPage({
     params,

@@ -1,9 +1,50 @@
+import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import ProductCatalogLayout from "@/components/shop/product-catalog-layout";
 import { Prisma } from "@/app/generated/prisma/client";
 import db from "@/lib/db";
 import { getFilterOptions, buildRawFilterConditions } from "@/lib/services/product-service";
+
+export async function generateMetadata(
+    { searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> },
+    parent: ResolvingMetadata
+): Promise<Metadata> {
+    const resolvedParams = await searchParams;
+    const previousImages = (await parent).openGraph?.images || [];
+
+    // Ürün modalından gelindiyse (Product URL Paylaşımı)
+    const productId = resolvedParams.productId as string | undefined;
+    if (productId) {
+        const product = await db.product.findUnique({ where: { id: productId } });
+        if (product) {
+            return {
+                title: product.name,
+                description: `${product.name} en uygun fiyatlarla ÖZAY Aksesuar'da.`,
+                openGraph: {
+                    title: `${product.name} | ÖZAY Aksesuar`,
+                    description: `${product.name} en uygun fiyatlarla ÖZAY Aksesuar'da.`,
+                    url: `https://özayderiaksesuar.com/search?productId=${product.id}`,
+                    images: product.images && product.images.length > 0 ? [product.images[0], ...previousImages] : previousImages,
+                },
+            };
+        }
+    }
+
+    // Arama yapıldıysa
+    const q = resolvedParams.q as string | undefined;
+    if (q) {
+        return {
+            title: `"${q}" Arama Sonuçları`,
+            description: `ÖZAY Aksesuar'da "${q}" için arama sonuçlarını inceleyin.`,
+        };
+    }
+
+    return {
+        title: "Tüm Ürünler",
+        description: "ÖZAY Aksesuar'daki tüm ürünleri, deri ve ip çeşitlerini inceleyin.",
+    };
+}
 
 export default async function SearchPage({
     searchParams,
