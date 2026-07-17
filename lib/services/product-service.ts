@@ -31,6 +31,7 @@ export async function getFilterOptions(filterableFields: any[], categoryId?: str
 export function buildFilterConditions(filterableFields: any[], searchParams: any) {
     const filterConditions: any[] = [];
     for (const field of filterableFields) {
+        if (field.name === "Alt Kategori") continue;
         const rawVal = searchParams[field.name];
         if (rawVal) {
             const activeValues = typeof rawVal === "string" ? rawVal.split(",") : rawVal;
@@ -52,7 +53,7 @@ export function buildFilterConditions(filterableFields: any[], searchParams: any
  */
 export function buildRawFilterConditions(activeFilters: Record<string, string[]>) {
     let filterConditions = Prisma.empty;
-    const filterKeys = Object.keys(activeFilters);
+    const filterKeys = Object.keys(activeFilters).filter((k) => k !== "Alt Kategori");
     if (filterKeys.length > 0) {
         const conditions = filterKeys.map((key) => {
             const values = activeFilters[key];

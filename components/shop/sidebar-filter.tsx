@@ -10,6 +10,81 @@ interface FilterOption {
     options: string[];
 }
 
+function CategoryTree({
+    parentId,
+    categories,
+    depth,
+    activeCategoryIds,
+    handleFilterChange,
+    isParentChecked = false,
+}: {
+    parentId: string | null;
+    categories: any[];
+    depth: number;
+    activeCategoryIds: string[];
+    handleFilterChange: (key: string, value: string, isChecked: boolean) => void;
+    isParentChecked?: boolean;
+}) {
+    const children = categories.filter((c) => c.parentId === parentId);
+    if (children.length === 0) return null;
+
+    return (
+        <div className={`flex flex-col gap-1.5 ${depth > 0 ? "pl-3.5 mt-0.5 border-l border-muted-foreground/40 ml-1" : ""}`}>
+            {children.map((cat) => {
+                const isExplicitlyChecked = activeCategoryIds.includes(cat.id);
+                const isChecked = isExplicitlyChecked || isParentChecked;
+                const isDisabled = isParentChecked;
+
+                return (
+                    <div key={cat.id} className="flex flex-col gap-1">
+                        <label className={`flex items-center space-x-3 group select-none relative ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+                            {depth > 0 && (
+                                <div className="absolute -left-[14px] top-1/2 w-3 h-[1px] bg-muted-foreground/40 -translate-y-1/2" />
+                            )}
+                            <div
+                                className={`flex items-center justify-center rounded border transition-colors shrink-0 ${isChecked ? "bg-primary border-primary" : "border-input"} ${!isDisabled && "group-hover:border-primary/50"} ${depth === 0 ? "w-4 h-4" : "w-3.5 h-3.5"}`}
+                            >
+                                {isChecked && (
+                                    <svg
+                                        className={`text-primary-foreground ${depth === 0 ? "w-3 h-3" : "w-2.5 h-2.5"}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                )}
+                            </div>
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={isChecked}
+                                disabled={isDisabled}
+                                onChange={(e) => {
+                                    if (!isDisabled) handleFilterChange("category", cat.id, e.target.checked);
+                                }}
+                            />
+                            <span
+                                className={`transition-colors ${isChecked ? "text-foreground font-medium" : "text-muted-foreground"} ${!isDisabled && "group-hover:text-foreground"} ${depth === 0 ? "text-sm" : "text-[13px]"}`}
+                            >
+                                {cat.name}
+                            </span>
+                        </label>
+                        <CategoryTree
+                            parentId={cat.id}
+                            categories={categories}
+                            depth={depth + 1}
+                            activeCategoryIds={activeCategoryIds}
+                            handleFilterChange={handleFilterChange}
+                            isParentChecked={isChecked}
+                        />
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 function SidebarFilterContent({
     filterableFields,
     categories = [],
@@ -28,6 +103,20 @@ function SidebarFilterContent({
 
         if (isChecked) {
             if (!currentValues.includes(value)) currentValues.push(value);
+
+            if (key === "category") {
+                // Remove all descendants of the newly checked category
+                const getDescendants = (parentId: string): string[] => {
+                    const children = categories.filter((c) => c.parentId === parentId).map((c) => c.id);
+                    let all = [...children];
+                    for (const child of children) {
+                        all = [...all, ...getDescendants(child)];
+                    }
+                    return all;
+                };
+                const descendants = getDescendants(value);
+                currentValues = currentValues.filter((v) => !descendants.includes(v));
+            }
         } else {
             currentValues = currentValues.filter((v) => v !== value);
         }
@@ -75,6 +164,13 @@ function SidebarFilterContent({
         );
     }
 
+    const activeCategoryIds = searchParams.get("category")?.split(",") || [];
+
+    // Find the root categories among the provided categories (those whose parent is not in the array)
+    const rootCategories = categories.filter(
+        (c) => !c.parentId || !categories.some((other) => other.id === c.parentId)
+    );
+
     return (
         <div className="flex flex-col gap-6 relative">
             <div className="flex items-center justify-between border-b pb-3">
@@ -96,32 +192,22 @@ function SidebarFilterContent({
                 <div className="flex flex-col gap-3">
                     <h4 className="font-medium text-sm text-foreground">Kategoriler</h4>
                     <div className="flex flex-col gap-2.5 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20">
-                        {categories
-                            .filter((c) => !c.parentId)
-                            .map((cat) => {
-                                const isChecked = searchParams.get("category")?.split(",").includes(cat.id) || false;
-
-                                return (
-                                    <label
-                                        key={cat.id}
-                                        className="flex items-center space-x-3 cursor-pointer group select-none"
-                                    >
+                        {rootCategories.map((rootCat) => {
+                            const isChecked = activeCategoryIds.includes(rootCat.id);
+                            return (
+                                <div key={rootCat.id} className="flex flex-col gap-1">
+                                    <label className="flex items-center space-x-3 cursor-pointer group select-none relative">
                                         <div
-                                            className={`w-4 h-4 flex items-center justify-center rounded border transition-colors ${isChecked ? "bg-primary border-primary" : "border-input group-hover:border-primary/50"}`}
+                                            className={`flex items-center justify-center rounded border transition-colors shrink-0 ${isChecked ? "bg-primary border-primary" : "border-input group-hover:border-primary/50"} w-4 h-4`}
                                         >
                                             {isChecked && (
                                                 <svg
-                                                    className="w-3 h-3 text-primary-foreground"
+                                                    className="text-primary-foreground w-3 h-3"
                                                     fill="none"
                                                     viewBox="0 0 24 24"
                                                     stroke="currentColor"
                                                 >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={3}
-                                                        d="M5 13l4 4L19 7"
-                                                    />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             )}
                                         </div>
@@ -129,16 +215,25 @@ function SidebarFilterContent({
                                             type="checkbox"
                                             className="hidden"
                                             checked={isChecked}
-                                            onChange={(e) => handleFilterChange("category", cat.id, e.target.checked)}
+                                            onChange={(e) => handleFilterChange("category", rootCat.id, e.target.checked)}
                                         />
                                         <span
                                             className={`text-sm transition-colors ${isChecked ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}`}
                                         >
-                                            {cat.name}
+                                            {rootCat.name}
                                         </span>
                                     </label>
-                                );
-                            })}
+                                    <CategoryTree
+                                        parentId={rootCat.id}
+                                        categories={categories}
+                                        depth={1}
+                                        activeCategoryIds={activeCategoryIds}
+                                        handleFilterChange={handleFilterChange}
+                                        isParentChecked={isChecked}
+                                    />
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

@@ -73,6 +73,24 @@ export default async function SearchPage({
         }
     }
 
+    const getDescendants = (id: string, all: any[]): string[] => {
+        const children = all.filter((c) => c.parentId === id).map((c) => c.id);
+        let allDesc = [...children];
+        for (const child of children) {
+            allDesc = [...allDesc, ...getDescendants(child, all)];
+        }
+        return allDesc;
+    };
+
+    let targetCategoryIds: string[] = [];
+    if (categoryIds.length > 0) {
+        targetCategoryIds = [...categoryIds];
+        for (const catId of categoryIds) {
+            targetCategoryIds.push(...getDescendants(catId, categories));
+        }
+        targetCategoryIds = Array.from(new Set(targetCategoryIds)); // Clean duplicates
+    }
+
     // 1. Find all filterable fields globally, for selected category, or inherited from ancestors
     const getCachedFields = async () => {
         const queryStr = JSON.stringify({ categoryIds, ancestorIds: Array.from(ancestorIds) });
@@ -81,11 +99,11 @@ export default async function SearchPage({
                 return await db.fieldDefinition.findMany({
                     where: {
                         isFilterable: true,
-                        ...(categoryIds.length > 0
+                        ...(targetCategoryIds.length > 0
                             ? {
                                   OR: [
                                       { isGlobal: true },
-                                      { categoryId: { in: categoryIds } },
+                                      { categoryId: { in: targetCategoryIds } },
                                       { categoryId: { in: Array.from(ancestorIds) }, includeSubcategories: true },
                                   ],
                               }
@@ -112,14 +130,28 @@ export default async function SearchPage({
     // 3. Construct raw query safely using service
     let { filterConditions, filterKeys } = buildRawFilterConditions(activeFilters);
 
-    if (categoryIds.length > 0) {
-        const catCond = Prisma.sql`(p."categoryId" = ANY(ARRAY[${Prisma.join(categoryIds)}]::text[]) OR c."parentId" = ANY(ARRAY[${Prisma.join(categoryIds)}]::text[]))`;
+    if (targetCategoryIds.length > 0) {
+        const catCond = Prisma.sql`p."categoryId" = ANY(ARRAY[${Prisma.join(targetCategoryIds)}]::text[])`;
         if (filterKeys.length > 0) {
             filterConditions = Prisma.sql`${filterConditions} AND ${catCond}`;
         } else {
             filterConditions = Prisma.sql`AND ${catCond}`;
         }
     }
+
+    const searchQueryCondition = q ? Prisma.sql`AND (
+       similarity(p.name, ${q}) > 0.1
+       OR similarity(c.name, ${q}) > 0.1
+       OR p.name ILIKE ${'%' + q + '%'}
+       OR c.name ILIKE ${'%' + q + '%'}
+       OR EXISTS (
+          SELECT 1 FROM "ProductField" pf
+          JOIN "FieldDefinition" fd ON pf.name = fd.name
+          WHERE pf."productId" = p.id 
+            AND fd."isSearchable" = true
+            AND (similarity(pf."stringValue", ${q}) > 0.1 OR pf."stringValue" ILIKE ${'%' + q + '%'})
+       )
+    )` : Prisma.empty;
 
     const query = Prisma.sql`
     SELECT 
@@ -143,17 +175,7 @@ export default async function SearchPage({
     FROM "Product" p
     LEFT JOIN "Category" c ON p."categoryId" = c.id
     WHERE 1=1
-    ${q ? Prisma.sql`AND (
-       similarity(p.name, ${q}) > 0.1
-       OR similarity(c.name, ${q}) > 0.1
-       OR EXISTS (
-          SELECT 1 FROM "ProductField" pf
-          JOIN "FieldDefinition" fd ON pf.name = fd.name
-          WHERE pf."productId" = p.id 
-            AND fd."isSearchable" = true
-            AND similarity(pf."stringValue", ${q}) > 0.1
-       )
-    )` : Prisma.empty}
+    ${searchQueryCondition}
     ${filterConditions}
     ${
         sortParam === "name_asc"
@@ -162,12 +184,12 @@ export default async function SearchPage({
             ? Prisma.sql`ORDER BY p.name DESC`
             : sortParam === "newest"
             ? Prisma.sql`ORDER BY p."createdAt" DESC`
-            : q ? Prisma.sql`ORDER BY GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) DESC` : Prisma.sql`ORDER BY p."createdAt" DESC`
+            : q ? Prisma.sql`ORDER BY GREATEST(similarity(p.name, ${q}), COALESCE(similarity(c.name, ${q}), 0)) DESC, p."createdAt" DESC` : Prisma.sql`ORDER BY p."createdAt" DESC`
     }
     LIMIT 12 OFFSET ${(page - 1) * 12}
   `;
 
-    const queryStr = JSON.stringify({ q, page, categoryIds, sortParam, activeFilters });
+    const queryStr = JSON.stringify({ q, page, targetCategoryIds, sortParam, activeFilters });
     
     const getCachedResults = async () => {
         return unstable_cache(
@@ -193,7 +215,7 @@ export default async function SearchPage({
                     FROM "Product" p
                     LEFT JOIN "Category" c ON p."categoryId" = c.id
                     WHERE 1=1
-                    ${q ? Prisma.sql`AND (p.name ILIKE ${'%' + q + '%'} OR c.name ILIKE ${'%' + q + '%'})` : Prisma.empty}
+                    ${searchQueryCondition}
                     ${filterConditions}
                 `);
             },

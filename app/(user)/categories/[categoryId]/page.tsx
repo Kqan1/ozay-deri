@@ -73,15 +73,33 @@ export default async function CategoryPage({
     // 2. Build dynamic where conditions using service
     const filterConditions = buildFilterConditions(filterableFields, resolvedSearch);
 
-    // Handle Subcategory Filter
-    const rawSubCat = resolvedSearch["Alt Kategori"];
-    let targetCategoryIds = [categoryId, ...category.subcategories.map((s) => s.id)];
+    // Handle Subcategory Filter (Now using standard "category" param with infinite depth)
+    const getDescendants = (id: string): string[] => {
+        const children = allCategories.filter((c) => c.parentId === id).map((c) => c.id);
+        let all = [...children];
+        for (const child of children) {
+            all = [...all, ...getDescendants(child)];
+        }
+        return all;
+    };
 
-    if (rawSubCat) {
-        const activeNames = typeof rawSubCat === "string" ? rawSubCat.split(",") : rawSubCat;
-        const matchingSubCats = category.subcategories.filter((s) => activeNames.includes(s.name));
-        if (matchingSubCats.length > 0) {
-            targetCategoryIds = matchingSubCats.map((s) => s.id);
+    const allDescendantIds = getDescendants(categoryId);
+    let targetCategoryIds = [categoryId, ...allDescendantIds];
+
+    const categoryParam = resolvedSearch["category"];
+    if (categoryParam) {
+        const activeIds = typeof categoryParam === "string" ? categoryParam.split(",") : categoryParam;
+        
+        // Sadece bulunduğumuz kategorinin geçerli alt dallarını veya kendisini filtrelemeye izin ver
+        const validActiveIds = activeIds.filter(id => allDescendantIds.includes(id) || id === categoryId);
+        
+        if (validActiveIds.length > 0) {
+            targetCategoryIds = [];
+            for (const activeId of validActiveIds) {
+                targetCategoryIds.push(activeId, ...getDescendants(activeId));
+            }
+            // Duplicate'leri temizle (örneğin hem ana kategori hem alt kategori seçildiyse)
+            targetCategoryIds = Array.from(new Set(targetCategoryIds));
         }
     }
 
@@ -106,13 +124,9 @@ export default async function CategoryPage({
     // 4. Fetch available distinct values for the sidebar filters
     const filterOptions = await getFilterOptions(filterableFields, categoryId);
 
-    if (category.subcategories.length > 0) {
-        filterOptions.unshift({
-            id: "subcategories",
-            name: "Alt Kategori",
-            options: category.subcategories.map((s) => s.name),
-        });
-    }
+    // Build the infinite category tree subset for this category's sidebar
+    const validSidebarIds = [categoryId, ...allDescendantIds];
+    const sidebarCategories = allCategories.filter(c => validSidebarIds.includes(c.id));
 
     const standardProducts = products.map((product) => ({
         id: product.id,
@@ -130,6 +144,7 @@ export default async function CategoryPage({
             totalPages={totalPages}
             products={standardProducts}
             filterOptions={filterOptions}
+            categories={sidebarCategories}
             headerChildren={
                 category.subcategories.length > 0 ? (
                     <div className="space-y-2">
