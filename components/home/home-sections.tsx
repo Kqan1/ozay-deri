@@ -3,13 +3,14 @@ import Link from "next/link";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
 import ProductModalLink from "@/components/shop/product-modal-link";
 import { ImageWithSpinner } from "@/components/ui/image-with-spinner";
-import db from "@/lib/db";
+import {
+    getCachedTopCategories,
+    getCachedCarouselSlides,
+    getCachedNewProducts,
+} from "@/lib/cached-queries";
 
 export async function HomeCarouselSection() {
-    const slides = await db.carouselSlide.findMany({
-        where: { isActive: true },
-        orderBy: { order: "asc" },
-    });
+    const slides = await getCachedCarouselSlides();
 
     return (
         <section className="relative w-full">
@@ -25,22 +26,7 @@ export function CarouselSkeleton() {
 }
 
 export async function TopCategoriesSection() {
-    const topCategories = await db.category.findMany({
-        where: {
-            isHidden: false,
-            parentId: null,
-        },
-        include: {
-            subcategories: {
-                where: { isHidden: false },
-                take: 5,
-            },
-        },
-        orderBy: {
-            createdAt: "desc",
-        },
-        take: 4,
-    });
+    const topCategories = await getCachedTopCategories();
 
     return (
         <section className="space-y-8">
@@ -122,7 +108,7 @@ export function CategoriesSkeleton() {
                 <div className="h-4 w-24 bg-muted rounded"></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                     <div key={i} className="h-64 bg-muted rounded-xl border shadow-sm"></div>
                 ))}
             </div>
@@ -131,23 +117,7 @@ export function CategoriesSkeleton() {
 }
 
 export async function NewProductsSection() {
-    const newProducts = await db.product.findMany({
-        where: {
-            isHidden: false,
-        },
-        include: {
-            fields: {
-                where: {
-                    name: { in: ["Thumbnail", "Açıklama", "Description"] },
-                },
-            },
-            category: true,
-        },
-        orderBy: {
-            createdAt: "desc",
-        },
-        take: 8,
-    });
+    const newProducts = await getCachedNewProducts();
 
     return (
         <section className="space-y-8">

@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import db from '@/lib/db';
+import { getCachedSitemapCategories, getCachedSitemapProducts } from '@/lib/cached-queries';
 import { siteConfig } from '@/lib/config';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -29,9 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     try {
         // Dinamik Kategoriler (Dynamic Routes)
-        const categories = await db.category.findMany({
-            select: { id: true, updatedAt: true },
-        });
+        const categories = await getCachedSitemapCategories();
 
         const categoryRoutes: MetadataRoute.Sitemap = categories.map((category) => ({
             url: `${baseUrl}/categories/${category.id}`,
@@ -41,9 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }));
 
         // Ürünler (Dynamic Routes)
-        const products = await db.product.findMany({
-            select: { id: true, updatedAt: true },
-        });
+        const products = await getCachedSitemapProducts();
 
         const productRoutes: MetadataRoute.Sitemap = products.map((product) => ({
             // Ürünler modalda açıldığı için veya direkt linki çalışması için /search?productId=...

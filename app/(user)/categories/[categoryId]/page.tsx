@@ -2,7 +2,13 @@ import type { Metadata, ResolvingMetadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductCatalogLayout from "@/components/shop/product-catalog-layout";
-import db from "@/lib/db";
+import { 
+    getCachedCategory, 
+    getCachedAllCategoriesLight, 
+    getCachedFilterableFields, 
+    getCachedCategoryProducts, 
+    getCachedCategoryProductsCount 
+} from "@/lib/cached-queries";
 import { getFilterOptions, buildFilterConditions } from "@/lib/services/product-service";
 
 export async function generateMetadata(
@@ -10,9 +16,7 @@ export async function generateMetadata(
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     const resolvedParams = await params;
-    const category = await db.category.findUnique({
-        where: { id: resolvedParams.categoryId },
-    });
+    const category = await getCachedCategory(resolvedParams.categoryId);
 
     if (!category) {
         return {
@@ -48,17 +52,14 @@ export default async function CategoryPage({
     const page = Number(resolvedSearch.page) || 1;
     const sort = resolvedSearch.sort as string;
 
-    const category = await db.category.findUnique({
-        where: { id: categoryId },
-        include: { subcategories: { where: { isHidden: false } } },
-    });
+    const category = await getCachedCategory(categoryId);
 
     if (!category) {
         notFound();
     }
 
     // 1. Fetch filterable fields for this category or global
-    const allCategories = await db.category.findMany({ select: { id: true, parentId: true } });
+    const allCategories = await getCachedAllCategoriesLight();
     const ancestorIds = new Set<string>();
     let currentId: string | null = category.parentId;
     while (currentId) {
@@ -67,16 +68,7 @@ export default async function CategoryPage({
         currentId = parent ? parent.parentId : null;
     }
 
-    const filterableFields = await db.fieldDefinition.findMany({
-        where: {
-            isFilterable: true,
-            OR: [
-                { isGlobal: true }, 
-                { categoryId },
-                { categoryId: { in: Array.from(ancestorIds) }, includeSubcategories: true }
-            ],
-        },
-    });
+    const filterableFields = await getCachedFilterableFields(categoryId, Array.from(ancestorIds));
 
     // 2. Build dynamic where conditions using service
     const filterConditions = buildFilterConditions(filterableFields, resolvedSearch);
@@ -99,29 +91,15 @@ export default async function CategoryPage({
     if (sort === "name_desc") orderBy = { name: "desc" };
 
     // 3. Query products
-    const products = await db.product.findMany({
-        where: {
-            categoryId: { in: targetCategoryIds },
-            AND: filterConditions.length > 0 ? filterConditions : undefined,
-        },
-        include: {
-            fields: {
-                where: {
-                    name: { in: ["Thumbnail", "Açıklama", "Description"] }
-                },
-            },
-        },
+    const products = await getCachedCategoryProducts(
+        targetCategoryIds,
+        filterConditions,
         orderBy,
-        take: 12,
-        skip: (page - 1) * 12,
-    });
+        12,
+        (page - 1) * 12
+    );
 
-    const totalProducts = await db.product.count({
-        where: {
-            categoryId: { in: targetCategoryIds },
-            AND: filterConditions.length > 0 ? filterConditions : undefined,
-        },
-    });
+    const totalProducts = await getCachedCategoryProductsCount(targetCategoryIds, filterConditions);
 
     const totalPages = Math.ceil(totalProducts / 12);
 

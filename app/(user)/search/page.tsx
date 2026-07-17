@@ -2,8 +2,10 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import ProductCatalogLayout from "@/components/shop/product-catalog-layout";
+import { unstable_cache } from "next/cache";
 import { Prisma } from "@/app/generated/prisma/client";
 import db from "@/lib/db";
+import { getCachedAllCategoriesLight } from "@/lib/cached-queries";
 import { getFilterOptions, buildRawFilterConditions } from "@/lib/services/product-service";
 
 export async function generateMetadata(
@@ -58,10 +60,7 @@ export default async function SearchPage({
     const sortParam = resolvedParams.sort as string | undefined;
     const categoryIds = categoryParam ? categoryParam.split(",") : [];
 
-    const categories = await db.category.findMany({
-        where: { isHidden: false },
-        select: { id: true, name: true, parentId: true },
-    });
+    const categories = await getCachedAllCategoriesLight();
 
     const ancestorIds = new Set<string>();
     for (const catId of categoryIds) {
@@ -75,20 +74,31 @@ export default async function SearchPage({
     }
 
     // 1. Find all filterable fields globally, for selected category, or inherited from ancestors
-    const filterableFields = await db.fieldDefinition.findMany({
-        where: {
-            isFilterable: true,
-            ...(categoryIds.length > 0
-                ? {
-                      OR: [
-                          { isGlobal: true },
-                          { categoryId: { in: categoryIds } },
-                          { categoryId: { in: Array.from(ancestorIds) }, includeSubcategories: true },
-                      ],
-                  }
-                : {}),
-        },
-    });
+    const getCachedFields = async () => {
+        const queryStr = JSON.stringify({ categoryIds, ancestorIds: Array.from(ancestorIds) });
+        return unstable_cache(
+            async () => {
+                return await db.fieldDefinition.findMany({
+                    where: {
+                        isFilterable: true,
+                        ...(categoryIds.length > 0
+                            ? {
+                                  OR: [
+                                      { isGlobal: true },
+                                      { categoryId: { in: categoryIds } },
+                                      { categoryId: { in: Array.from(ancestorIds) }, includeSubcategories: true },
+                                  ],
+                              }
+                            : {}),
+                    },
+                });
+            },
+            [`search-fields-${queryStr}`],
+            { revalidate: 3600, tags: ["fields", "categories"] }
+        )();
+    };
+
+    const filterableFields = await getCachedFields();
 
     // 2. Extract selected filters from searchParams
     const activeFilters: Record<string, string[]> = {};
@@ -157,19 +167,42 @@ export default async function SearchPage({
     LIMIT 12 OFFSET ${(page - 1) * 12}
   `;
 
-    const results = (await db.$queryRaw(query)) as any[];
+    const queryStr = JSON.stringify({ q, page, categoryIds, sortParam, activeFilters });
+    
+    const getCachedResults = async () => {
+        return unstable_cache(
+            async () => {
+                const res = (await db.$queryRaw(query)) as any[];
+                return res;
+            },
+            [`search-results-${queryStr}`],
+            { revalidate: 60, tags: ["products"] }
+        )();
+    };
+
+    const results = await getCachedResults();
 
     // 4. Fetch possible values for filterable fields for Sidebar
     const filterOptions = await getFilterOptions(filterableFields);
 
-    const countResult = await db.$queryRaw<{ count: string }[]>(Prisma.sql`
-        SELECT COUNT(*)::text as count
-        FROM "Product" p
-        LEFT JOIN "Category" c ON p."categoryId" = c.id
-        WHERE 1=1
-        ${q ? Prisma.sql`AND (p.name ILIKE ${'%' + q + '%'} OR c.name ILIKE ${'%' + q + '%'})` : Prisma.empty}
-        ${filterConditions}
-    `);
+    const getCachedCount = async () => {
+        return unstable_cache(
+            async () => {
+                return await db.$queryRaw<{ count: string }[]>(Prisma.sql`
+                    SELECT COUNT(*)::text as count
+                    FROM "Product" p
+                    LEFT JOIN "Category" c ON p."categoryId" = c.id
+                    WHERE 1=1
+                    ${q ? Prisma.sql`AND (p.name ILIKE ${'%' + q + '%'} OR c.name ILIKE ${'%' + q + '%'})` : Prisma.empty}
+                    ${filterConditions}
+                `);
+            },
+            [`search-count-${queryStr}`],
+            { revalidate: 60, tags: ["products"] }
+        )();
+    };
+
+    const countResult = await getCachedCount();
     
     const totalCount = parseInt(countResult[0]?.count || "0", 10);
     const totalPages = Math.ceil(totalCount / 12);

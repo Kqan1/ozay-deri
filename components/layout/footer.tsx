@@ -12,18 +12,14 @@ import {
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { siteConfig } from "@/lib/config";
-import db from "@/lib/db";
+import { getCachedFooterCategories } from "@/lib/cached-queries";
 import MapIframe from "@/components/ui/map-iframe";
 
 export default async function Footer() {
     const session = await getServerSession(authOptions);
     const isAdmin = session?.user && (session.user as any).role === "ADMIN";
 
-    const categories = await db.category.findMany({
-        where: { isHidden: false, parentId: null },
-        orderBy: { name: "asc" },
-        take: 6,
-    });
+    const categories = await getCachedFooterCategories();
 
     return (
         <footer className="w-full border-t bg-card mt-auto pt-16 pb-8">

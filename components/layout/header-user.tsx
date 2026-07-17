@@ -5,7 +5,7 @@ import { FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import LiveSearch from "@/components/ui/live-search";
 import { siteConfig } from "@/lib/config";
-import db from "@/lib/db";
+import { getCachedHeaderCategories } from "@/lib/cached-queries";
 import MobileMenu from "./mobile-menu";
 import MobileSearchButton from "./mobile-search-button";
 
@@ -13,17 +13,7 @@ export default async function HeaderUser() {
     const session = await getServerSession(authOptions);
     const isAdmin = session?.user && (session.user as any).role === "ADMIN";
 
-    const categories = await db.category.findMany({
-        where: { isHidden: false, parentId: null },
-        orderBy: { name: "asc" },
-        include: {
-            subcategories: {
-                where: { isHidden: false },
-                orderBy: { name: "asc" },
-            },
-        },
-        take: 10,
-    });
+    const categories = await getCachedHeaderCategories();
 
     return (
         <header className="sticky top-0 left-0 right-0 z-50 w-full py-3 md:py-4 border-b bg-card flex items-center justify-between shadow-sm">

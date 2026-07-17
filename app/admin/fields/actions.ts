@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import db from "@/lib/db";
 
 export async function createFieldDefinition(formData: FormData) {
@@ -36,6 +36,9 @@ export async function createFieldDefinition(formData: FormData) {
         }
 
         revalidatePath("/admin/fields");
+        revalidatePath("/");
+        updateTag("fields");
+        updateTag("categories");
         return { success: true };
     } catch (e: any) {
         return { error: e.message };
@@ -46,6 +49,9 @@ export async function deleteFieldDefinition(id: string) {
     try {
         await db.fieldDefinition.delete({ where: { id } });
         revalidatePath("/admin/fields");
+        revalidatePath("/");
+        updateTag("fields");
+        updateTag("categories");
         return { success: true };
     } catch (e: any) {
         return { error: e.message };

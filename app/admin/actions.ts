@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import type { FieldType } from "@/app/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth-utils";
 
@@ -22,6 +22,7 @@ export async function createCategory(data: {
         },
     });
     revalidatePath("/");
+    updateTag("categories");
     return category;
 }
 
@@ -52,6 +53,7 @@ export async function updateCategory(
         },
     });
     revalidatePath("/");
+    updateTag("categories");
     return category;
 }
 
@@ -90,6 +92,10 @@ export async function deleteCategory(id: string, deleteProducts: boolean) {
         where: { id },
     });
     revalidatePath("/");
+    updateTag("categories");
+    if (deleteProducts) {
+        updateTag("products");
+    }
     return category;
 }
 
@@ -141,6 +147,7 @@ export async function createProduct(data: CreateProductInput) {
         },
     });
     revalidatePath("/");
+    updateTag("products");
     return product;
 }
 
@@ -186,6 +193,7 @@ export async function updateProduct(id: string, data: CreateProductInput) {
         },
     });
     revalidatePath("/");
+    updateTag("products");
     return product;
 }
 
@@ -206,6 +214,7 @@ export async function deleteProduct(id: string) {
         where: { id },
     });
     revalidatePath("/");
+    updateTag("products");
     return product;
 }
 
@@ -278,6 +287,7 @@ export async function createCarouselSlide(data: CreateCarouselSlideInput) {
         },
     });
     revalidatePath("/");
+    updateTag("carousel");
     return slide;
 }
 
@@ -297,6 +307,7 @@ export async function updateCarouselSlide(id: string, data: CreateCarouselSlideI
         data,
     });
     revalidatePath("/");
+    updateTag("carousel");
     return slide;
 }
 
@@ -315,6 +326,7 @@ export async function deleteCarouselSlide(id: string) {
         where: { id },
     });
     revalidatePath("/");
+    updateTag("carousel");
     return slide;
 }
 
@@ -334,6 +346,7 @@ export async function updateCarouselSlideOrder(updates: { id: string; order: num
         });
     }
     revalidatePath("/");
+    updateTag("carousel");
     return true;
 }
 
