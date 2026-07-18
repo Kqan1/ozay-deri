@@ -17,7 +17,7 @@ export default async function CategoriesBar() {
     if (!categories || categories.length === 0) return null;
 
     return (
-        <div className="w-full border-b bg-card shadow-sm">
+        <div className="hidden md:block w-full border-b bg-card shadow-sm">
             <div className="mx-auto flex justify-center max-w-7xl px-4 sm:px-6 lg:px-8 py-2">
                 <NavigationMenu>
                     <NavigationMenuList className="flex flex-wrap justify-center gap-1">
