@@ -4,14 +4,15 @@ export const siteConfig = {
     metadata: {
         metadataBase: new URL("https://özayderiaksesuar.com"),
         title: {
-            default: "ÖZAY Aksesuar",
-            template: "%s | ÖZAY Aksesuar",
+            default: "ÖZAY Deri & Aksesuar",
+            template: "%s | ÖZAY Deri & Aksesuar",
         },
         description:
-            "Özay Aksesuar | Bileklik Aksesuarları, İp ve İplik Çeşitleri, Deri Çeşitleri, Takı Malzemeleri | Tahtakale Mahallesi, Güvener İş Hanı, Eminönü - Özay Aksesuar",
-        applicationName: "Özay Aksesuar",
+            "Özay Deri & Aksesuar | Bileklik Aksesuarları, İp ve İplik Çeşitleri, Deri Çeşitleri, Takı Malzemeleri | Tahtakale Mahallesi, Güvener İş Hanı, Eminönü - Özay Deri & Aksesuar",
+        applicationName: "ÖZAY Deri & Aksesuar",
         authors: [{ name: "Kqan", url: "https://github.com/Kqan1" }],
         keywords: [
+            "özay deri ve aksesuar",
             "özay aksesuar",
             "deri bileklik",
             "ip çeşitleri",
@@ -29,21 +30,21 @@ export const siteConfig = {
             type: "website",
             locale: "tr_TR",
             url: "https://özayderiaksesuar.com",
-            title: "ÖZAY Aksesuar - Deri, İp ve Takı Malzemeleri",
-            description: "Bileklik aksesuarları, deri ve ip çeşitleri ile aradığınız her türlü takı malzemesi Tahtakale'de Özay Aksesuar'da.",
-            siteName: "ÖZAY Aksesuar",
+            title: "ÖZAY Deri & Aksesuar - Deri, İp ve Takı Malzemeleri",
+            description: "Bileklik aksesuarları, deri ve ip çeşitleri ile aradığınız her türlü takı malzemesi Tahtakale'de Özay Deri & Aksesuar'da.",
+            siteName: "ÖZAY Deri & Aksesuar",
             images: [
                 {
                     url: "/icon.png",
                     width: 512,
                     height: 512,
-                    alt: "Özay Aksesuar Logo",
+                    alt: "Özay Deri & Aksesuar Logo",
                 },
             ],
         },
         twitter: {
             card: "summary_large_image",
-            title: "ÖZAY Aksesuar",
+            title: "ÖZAY Deri & Aksesuar",
             description: "Deri, ip ve takı malzemelerinde kalite ve güvenin adresi.",
             images: ["/icon.png"],
         },
@@ -58,7 +59,7 @@ export const siteConfig = {
         tiktok: "https://www.tiktok.com/@ozay.deri.aksesuar?_r=1&_t=ZS-983MG2CjW68",
     },
     contact: {
-        address: "Tahtakale Mahallesi, Güvener İş Hanı\nÖzay Aksesuar",
+        address: "Tahtakale Mahallesi, Güvener İş Hanı\nÖzay Deri & Aksesuar",
         phones: [
             { label: "+90 555 978 55 53", value: "+905559785553" },
             { label: "+90 212 528 60 62", value: "+902125286062" },

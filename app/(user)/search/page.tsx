@@ -22,10 +22,10 @@ export async function generateMetadata(
         if (product) {
             return {
                 title: product.name,
-                description: `${product.name} en uygun fiyatlarla ÖZAY Aksesuar'da.`,
+                description: `${product.name} en uygun fiyatlarla ÖZAY Deri & Aksesuar'da.`,
                 openGraph: {
-                    title: `${product.name} | ÖZAY Aksesuar`,
-                    description: `${product.name} en uygun fiyatlarla ÖZAY Aksesuar'da.`,
+                    title: `${product.name} | ÖZAY Deri & Aksesuar`,
+                    description: `${product.name} en uygun fiyatlarla ÖZAY Deri & Aksesuar'da.`,
                     url: `https://özayderiaksesuar.com/search?productId=${product.id}`,
                     images: product.images && product.images.length > 0 ? [product.images[0], ...previousImages] : previousImages,
                 },
@@ -38,13 +38,13 @@ export async function generateMetadata(
     if (q) {
         return {
             title: `"${q}" Arama Sonuçları`,
-            description: `ÖZAY Aksesuar'da "${q}" için arama sonuçlarını inceleyin.`,
+            description: `ÖZAY Deri & Aksesuar'da "${q}" için arama sonuçlarını inceleyin.`,
         };
     }
 
     return {
         title: "Tüm Ürünler",
-        description: "ÖZAY Aksesuar'daki tüm ürünleri, deri ve ip çeşitlerini inceleyin.",
+        description: "ÖZAY Deri & Aksesuar'daki tüm ürünleri, deri ve ip çeşitlerini inceleyin.",
     };
 }
 

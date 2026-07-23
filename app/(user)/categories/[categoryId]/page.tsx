@@ -28,9 +28,9 @@ export async function generateMetadata(
 
     return {
         title: category.name,
-        description: `${category.name} kategorisindeki ürünleri inceleyin. ÖZAY Aksesuar'da en uygun fiyatlarla.`,
+        description: `${category.name} kategorisindeki ürünleri inceleyin. ÖZAY Deri & Aksesuar'da en uygun fiyatlarla.`,
         openGraph: {
-            title: `${category.name} | ÖZAY Aksesuar`,
+            title: `${category.name} | ÖZAY Deri & Aksesuar`,
             description: `${category.name} kategorisindeki ürünleri inceleyin.`,
             url: `https://özayderiaksesuar.com/categories/${category.id}`,
             images: category.images && category.images.length > 0 ? [category.images[0], ...previousImages] : previousImages,
